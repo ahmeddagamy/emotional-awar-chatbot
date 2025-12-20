@@ -1,0 +1,29 @@
+FROM rasa/rasa-sdk:3.6.2
+
+ENV PIP_NO_CACHE_DIR=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Copy deps first for better caching
+COPY requirements.txt /app/requirements.txt
+
+# Install project requirements on top of rasa-sdk base
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r /app/requirements.txt || true
+
+# Copy the rest of the application (so custom modules used by actions.py are available)
+COPY . /app
+
+# Drop privileges (base image includes a 'rasa' user)
+USER 1001
+
+EXPOSE 5055
+
+# Healthcheck: the SDK exposes /health by default
+HEALTHCHECK --interval=15s --timeout=5s --retries=10 CMD \
+  curl -fsS http://localhost:5055/health || exit 1
+
+# Start the action server; change module if actions live elsewhere
+CMD ["start", "--actions", "actions", "--port", "5055"]

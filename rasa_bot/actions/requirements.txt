@@ -1,0 +1,22 @@
+# file: requirements.txt
+
+# --- Core Rasa bot ---
+rasa>=3.6,<3.7
+rasa-sdk>=3.6,<3.7
+
+# --- Actions & utilities used in actions.py ---
+requests>=2.31,<3
+python-dateutil>=2.8.2,<3
+
+# --- Optional: Vision bridge API (FastAPI) ---
+fastapi>=0.111,<1.0
+uvicorn[standard]>=0.30,<0.31
+# If you plan to serve static files/templates from FastAPI:
+jinja2>=3.1,<4
+aiofiles>=23.2,<24
+
+# --- Optional: Image handling for /ingest-frame (safe to keep even if not used) ---
+opencv-python-headless>=4.8,<5
+Pillow>=10,<12
+# OpenCV depends on numpy; stay under 2.0 to align with Rasa/TensorFlow stacks
+numpy>=1.23,<2.0

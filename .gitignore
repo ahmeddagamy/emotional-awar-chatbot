@@ -1,0 +1,223 @@
+# ============================================
+# Python
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ============================================
+# Virtual Environments
+# ============================================
+venv/
+env/
+ENV/
+.venv
+venv.bak/
+env.bak/
+
+# ============================================
+# IDE and Editors
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# Environment Variables and Secrets
+# ============================================
+.env
+.env.local
+.env.*.local
+*.env
+config.local.*
+settings.local.*
+secrets/
+.secrets/
+
+# Keep example files
+!.env.example
+
+# ============================================
+# Rasa Files
+# ============================================
+rasa_bot/models/
+rasa_bot/.rasa/
+rasa_bot/actions/.rasa/
+rasa_bot/.persist/
+*.tar.gz
+
+# Keep example files, ignore actual configs
+!rasa_bot/actions/endpoints.example.yml
+!rasa_bot/actions/credentials.example.yml
+rasa_bot/actions/credentials.yml
+rasa_bot/actions/endpoints.yml
+
+# ============================================
+# Credentials and Sensitive Files
+# ============================================
+credentials.yml
+*.key
+*.pem
+*.crt
+*.secret
+*.token
+*_secret*
+*_private*
+*.p12
+*.pfx
+
+# ============================================
+# Logs
+# ============================================
+*.log
+logs/
+*.log.*
+*.out
+
+# ============================================
+# Data Files and Databases
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+data/
+results/
+*.jsonl
+appointments.jsonl
+appointments.sqlite
+
+# Generated data
+data_generation/synth_patients.json
+
+# ============================================
+# Testing
+# ============================================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+test-results/
+coverage.xml
+*.cover
+
+# ============================================
+# Jupyter Notebooks
+# ============================================
+.ipynb_checkpoints
+*.ipynb
+
+# ============================================
+# Docker
+# ============================================
+.dockerignore
+
+# ============================================
+# OS Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ============================================
+# Temporary Files
+# ============================================
+*.tmp
+*.temp
+.cache/
+*.cache
+tmp/
+temp/
+
+# ============================================
+# Backup Files
+# ============================================
+*.bak
+*.backup
+*.orig
+*~
+
+# ============================================
+# MediaPipe Cache
+# ============================================
+.mediapipe/
+
+# ============================================
+# Node Modules (if any)
+# ============================================
+node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log*
+
+# ============================================
+# Large Model Files
+# ============================================
+*.h5
+*.pkl
+*.pth
+*.onnx
+models/*.pb
+models/*.tflite
+*.weights
+
+# ============================================
+# Build Artifacts
+# ============================================
+build/
+dist/
+*.egg
+*.whl
+*.tar.gz
+
+# ============================================
+# Documentation Builds
+# ============================================
+docs/_build/
+site/
+_site/
+
+# ============================================
+# Production Files
+# ============================================
+*.pid
+*.sock
+*.lock
+
+# ============================================
+# Local Development
+# ============================================
+local/
+.local/
+*.local

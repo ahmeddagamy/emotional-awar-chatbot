@@ -1,0 +1,741 @@
+version: "3.1"
+assistant_id: ubmf_dental_converter_pro
+recipe: behavioral_journey_surgical.v15
+language: en
+
+pipeline:
+  # ================== ENHANCED CORE COMPONENTS ==================
+  - name: "UBMFDataHydrator"
+    description: "Normalizes 45+ raw metrics into UBMF standard units by processing scroll, gaze, click, and physiological data."
+    #  This section, the "UBMFDataHydrator," is a core module that standardizes raw user interaction data into o set of unified metrtic that form the basis of the UBMF framework##
+    components:
+      scroll_analyzer:
+        velocity_buckets: [60, 120, 180]
+        backtrack_penalty: 0.15
+        stability_threshold: 0.7
+      gaze_mapper:
+        medical_term_clusters: ["implant", "bone_graft", "sinus_lift"]
+        fixation_threshold: "2s"
+      hr_entropy_calculator:
+        window_size: "5s"
+        stress_threshold: 0.65
+      click_analyzer:                           # NEW: Processes click patterns
+        click_cadence: true                     # Measures time between clicks
+        pressure_heatmap: true                  # Captures click intensity and distribution
+      focus_islands:                            # NEW: Detects dwell clusters on key content
+        detection: "semantic+positional"
+        key_terms_file: "/data/ubmf_terms.txt"
+      interaction_pattern_analyzer:             # NEW: Analyzes corrections, form interactions, and error signals
+        error_correction_rate: true
+        form_interaction: true
+
+  - name: "UBMFWeightOptimizer"
+    calibration_schedule: "continuous"
+    parameters:
+      scroll_dampening: 
+        base: 0.1
+        min: 0.05
+        max: 0.15
+      dwell_time_weight:
+        base: 0.3
+        critical_pages: ["/pricing", "/surgeons"]
+        boost: 0.4
+      hrv_multiplier:
+        stress_detected: 2.5
+        neutral_state: 1.0
+
+  - name: "UVECalculator"
+    update_interval: "5s"
+    component_weights:
+      digital_body: 0.40
+      physiological: 0.30
+      contextual: 0.20
+      intent_certainty: 0.10
+      engagement_entropy: 0.05
+      temporal_consistency: 0.03
+      behavioral_consistency: 0.02
+    normalization:
+      method: "minmax"
+      feature_ranges: 
+        dwell_time: [0, 300]
+        scroll_depth: [0, 100]
+
+  # ================== ADVANCED VISITOR BEHAVIOR TRACKER ==================
+  - name: "AdvancedVisitorBehaviorTracker"
+    description: >
+      Integrates UBMF data and computes detailed interaction metrics.
+      Captures digital body language, physiological trust signals, contextual weighting, and intent certainty.
+    ubmf_integration:
+      focus_islands:
+        detection: "semantic+positional"
+        medical_terms: "/data/ubmf_terms.txt"
+      risk_reversal_patterns:
+        insurance_rewatch_threshold: 3
+        comparison_triggers: ["family", "cost"]
+
+  # ================== NEW ADVANCED METRICS ==================
+  - name: "EntropyCalculator"
+    description: "Calculates engagement entropy using Shannon entropy on interaction events."
+    formula: "Σ(-p_i * log2(p_i))"
+    interaction_events: ["scroll", "click", "hover", "video_play"]
+    entropy_buckets:
+      focused: "<2.0"
+      normal: "2.0-4.0"
+      erratic: ">4.0"
+
+  - name: "TemporalConsistencyAnalyzer"
+    description: "Analyzes the consistency of engagement over time using ARIMA-based methods."
+    analysis_method: "ARIMA"
+    metrics:
+      - dwell_time_autocorr
+      - scroll_pattern_similarity
+    window_config:
+      size: "5m"
+      stride: "1m"
+    decay_model: "exponential(β=0.85)"
+
+  - name: "NetworkImpactAdapter"
+    description: "Adjusts engagement metrics based on network performance impacts."
+    latency_sla:
+      page_load: "2.0s"
+      api_response: "1.5s"
+    penalty_formula: "1 - 0.15*(violation_count^2)"
+    compensation_strategies:
+      - threshold_relaxation: 0.1
+      - content_priority: "critical_path_only"
+
+  - name: "ClinicalSentimentEngine"
+    description: "Analyzes visitor text input for sentiment in a clinical context."
+    model: "BioClinicalBERT-Sentiment-v4"
+    intensity_weights:
+      positive: 
+        base: 1.2
+        multipliers:
+          treatment_success: 1.3
+          cost_satisfaction: 1.5
+      negative:
+        base: -1.5
+        multipliers:
+          pain_mentions: 2.0
+          risk_concerns: 1.8
+    context_awareness:
+      page_specific_lexicons:
+        "/risks": ["complication", "infection", "recovery"]
+        "/pricing": ["affordable", "hidden", "discount"]
+
+  - name: "BehavioralConsistencyTracker"
+    description: "Tracks consistency of user behavior across sessions."
+    session_window: 30
+    similarity_metrics:
+      - scroll_heatmap_cosine
+      - treatment_preference_vector
+      - temporal_engagement_signature
+    decay_factor: 0.92
+    anomaly_threshold: "2.5σ"
+
+  # ================== REAL PATIENT INTERACTION PATTERNS ==================
+  - name: "PatientIntentRecognizer"
+    common_interactions:
+      procedure_questions:
+        - pattern: "how long is recovery for (dental implants|all-on-4)"
+          response: "utter_recovery_duration_{1}"
+        - pattern: "is (bone grafting|sinus lift) painful"
+          response: "utter_pain_management_{1}"
+      cost_concerns:
+        - pattern: "hidden fees for (.*)"
+          response: "utter_cost_breakdown_{1}"
+        - pattern: "can I pay monthly for (.*)"
+          response: "utter_financing_{1}"
+      surgeon_validation:
+        - pattern: "is (Dr\\. \\w+) (GMC certified|UK trained)"
+          response: "utter_credentials_{2}"
+
+  # ================== ENHANCED CLINICAL NLP ==================
+  - name: "ClinicalBERTFeaturizer"
+    model_name: "emilyalsentzer/Bio_ClinicalBERT"
+    version: "v1.0"
+    training_data_source: "PubMed clinical abstracts, dental case studies"
+    model_card: "https://yourclinic.com/model_cards/Bio_ClinicalBERT_v1.0"
+    medical_entities:
+      procedures: 
+        - "zygomatic_implants"
+        - "immediate_load_implants"
+        - "socket_preservation"
+      risks:
+        - "peri-implantitis"
+        - "nerve_paraesthesia"
+        - "sinus_perforation"
+    synonyms:
+      "teeth replacement": "dental_implants"
+      "same day teeth": "all-on-4"
+
+  # ================== BEHAVIORAL ANALYTICS ==================
+  - name: "PatientJourneyAnalyzer"
+    engagement_metrics:
+      scroll_depth_analysis:
+        critical_pages: 
+          pricing: "85%"
+          risks: "60%"
+          testimonials: "90%"
+      interaction_heatmap:
+        hot_zones:
+          - "before/after_slider"
+          - "surgeon_video_play"
+          - "price_compare_tool"
+      element_interactions:
+        video_clicks: true
+        pricing_clicks: true
+        testimonial_clicks: true
+        gallery_clicks: true
+
+  # ================== CONVERSION ENGINEERING ==================
+  - name: "ConversionCatalyst"
+    urgency_triggers:
+      realtime_data:
+        surgeon_slots: 
+          dr_cem: 3
+          dr_elif: 2
+        next_uk_slot: "2024-06-17"
+      geo_targeted_offers:
+        manchester: "15% discount until Friday"
+        london: "Free consultation for June"
+    social_proof_strategy:
+      matching_matrix:
+        age: "±3_years"
+        profession: ["teacher", "executive", "retiree"]
+      content_types:
+        - "video_testimonial_3months"
+        - "1year_followup_interview"
+
+  # ================== EMOTION-ADAPTIVE CONVERSATIONAL ENGINE ==================
+  - name: "EmotionAdaptiveConversationalEngine"
+    description: >
+      Generates accurate, context-aware responses by adapting to both visitor behavior and real-time emotional cues.
+    components:
+      - hybrid_nlu:
+          model: "bert-gpt_hybrid_v2"
+          context_window: 512
+          re_priming_interval: "10m"
+      - adaptive_response_generator:
+          use_agentic_AI: true
+          fallback_to_rule_based: true
+          response_templates:
+            surprise: "I see you're surprised! Let me show you some exclusive offers."
+            anger: "I understand your frustration. How can I help resolve this quickly?"
+            happiness: "Great to see you happy! Here are some exciting deals just for you."
+            frustration: "I'm sorry for any inconvenience. Let's work through this together."
+            relief: "I'm glad you're feeling better. Would you like to explore more options?"
+            disbelieve: "I understand that may sound surprising. Let me provide more details."
+            not_caring: "I sense you might not be very interested—can I help find something more suited?"
+      - memory_module:
+          persistent_context: true
+          update_interval: "5s"
+      - micro_expression_detector:
+          enabled: true
+          detection_frequency: "2Hz"
+          detection_modes:
+            decision_struggle: "lip_biting + rapid_pupil_dilation"
+            information_overload: "repeated_nose_touching + alt_tab_flurry"
+            price_sensitivity: "pupil_constriction_on_cost_pages"
+            focused_reading: "sustained_scroll_pause + consistent_eye_fixation"
+            skeptical_interest: "asymmetric_smile + leaned_forward"
+            hidden_urgency: "foot_tapping_rhythm + scroll_jitter"
+            vanity_triggered: "neck_touch + preen_motions"
+            subtle_relief: "slight_smile + relaxed_eye_dilation"
+            credential_verification: "document_zoom_speed + policy_replay_count"
+            authority_response: "posture_straightening_on_surgeon_videos + sustained_eyebrow_raise"
+            semantic_confusion: "head_tilt_angle > 15° during jargon"
+            procedural_curiosity: "hover_synchronicity_on_animation_steps"
+            hidden_resentment: "micro_jaw_clench + forced_smile_duration"
+            passive_aggression: "delayed_scroll_after_CTA + polite_lexical_mismatch"
+            ownership_gestures: "screen_tapping_rhythm_matching_video_demos"
+            mental_rehearsal: "lip_mirroring_of_surgical_explanations"
+            technology_awe: "scroll_slowdown_on_AI_planning_section + audible_breath_catch"
+            sterilization_concern: "ctrl+f_on_hygiene_pages + micro_nose_wrinkles"
+            peer_comparison: "scroll_backtracking_on_testimonial_ages + rapid_pupil_dilation_on_similar_profiles"
+            status_awareness: "gaze_duration_on_credentials_vs_price + hover_oscillation_between_premium_vs_basic_implants"
+            complication_fear: "throat_swallow_rate_during_risks_section + abrupt_video_pause_on_risk_sections"
+            buyer_remorse: "mouse_circular_motions_post_checkout + rapid_alt_tab_after_payment"
+            deadline_awareness: "increased_blink_rate_on_limited_offers + countdown_timer_glance_rate"
+            slot_fomo_response: "rapid_saccades_between_surgeon_availability_dots + earlobe_pull"
+            price_anchor_shock: "sudden_scroll_pause_on_cost_comparison + nostril_flare"
+            hidden_budget_stress: "rapid_form_field_skipping + increased_forehead_temperature"
+            financing_interest: "repeated_insurance_document_hovers + lip_licking"
+            technique_trust: "circular_mouse_motions_on_3D_implant_demos + reduced_blink_rate"
+            surgeon_validation: "side-by-side_tab_compare_surgeons + document_zoom_depth > 300%"
+            authority_deference: "posture_adjustment_during_consultant_bios + sustained_eyebrow_raise"
+            recovery_optimism: "replay_count_on_recovery_timelines + subtle_head_nodding"
+            immediate_results_fantasy: "dwell_clusters_on_instant_smile_gallery + cheek_raise_asymmetry"
+            multi_patient_calculation: "family_role_selector_clicks + calculator_tool_activation_count"
+            generational_vanity: "age_slider_manipulation_rate + neck_touch_frequency"
+            deadline_sensitivity: "countdown_timer_glance_rate + foot_tapping_sync_with_timer"
+            aftercare_uncertainty: "recursive_navigation_through_FAQ + document_download_abandonment"
+            buyer_remorse_risk: "post_checkout_mouse_tremors + rapid_alt_tab_after_payment"
+
+  # ================== GUIDED NAVIGATION & DATA COLLECTION ==================
+  - name: "DataCollectionAndNavigator"
+    description: >
+      Guides visitors through the website while providing targeted offers and collecting essential data
+      (phone, name, age, trust level, desirability, classability) for follow-up.
+    components:
+      - guided_navigation:
+          enabled: true
+          prompts:
+            - "Welcome! How can I assist you today?"
+            - "Let me guide you to our top offers."
+      - coupon_offer_engine:
+          enabled: true
+          strategy: "personalized"
+          message: "Here's an exclusive coupon just for you!"
+      - visitor_data_form:
+          fields:
+            - phone_number
+            - name
+            - age
+            - trust_level
+            - desirability
+            - classability
+          submit_endpoint: "https://api.yourcompany.com/appointmentData"
+          data_encryption: true
+
+  # ================== PSYCHOGRAPHIC & INTENT ANALYSIS ==================
+  - name: "PsychographicAnalyzer"
+    description: "Infers personality traits and desire metrics using an enhanced clinical model."
+    model: "medturbo_psychgraph_v4"
+    ethical_bias_monitoring: true
+    model_card: "https://yourclinic.com/model_cards/psychgraph_v4"
+    dimensions:
+      - aesthetic_obsession
+      - surgical_fantasy_depth
+      - authority_susceptibility
+    desire_metrics:
+      - social_status_gain
+      - mortality_escape_urgency
+
+  - name: "NeuroResponsePredictor"
+    description: "Predicts visitor responses using a transformer-LSTM hybrid model."
+    algorithm: "transformer_lstm_hybrid"
+    training_data_source: "Historical interaction logs, clinical studies"
+    model_card: "https://yourclinic.com/model_cards/neuroresponse_v1"
+    prediction_features:
+      - price_anchor_response
+      - scarcity_reactivity
+      - testimonial_efficacy
+
+  - name: "HybridConversationEngine"
+    description: >
+      Processes multimodal inputs (text, visual, biometric) and uses adaptive priming to steer conversations effectively.
+    components:
+      - multimodal_input:
+          text_weight: 0.6
+          visual_weight: 0.3
+          biometric_weight: 0.1
+      - adaptive_priming:
+          fear_prime: "risk_avoidance"
+          hope_prime: "result_visualization"
+
+  # ================== ADDITIONAL SALES & CONVERSATIONAL MODULES ==================
+  - name: "ConversionAccelerator"
+    description: >
+      Integrates persuasive messaging using real-time data (e.g., surgeon slot availability) and social proof to boost conversions.
+    modules:
+      urgency_engine:
+        live_data: "surgeon_slots"
+        dynamic_messaging:
+          - "Dr. Elif's next London patient slot:"
+          - "June VIP releases: 3 remaining"
+      social_proof:
+        testimonial_selector: "demographic_matching"
+        success_story_rotation: "15m"
+
+  - name: "FacialPersuasionAnalyzer"
+    description: "Maps microexpressions to persuasive cues."
+    microexpression_map:
+      lip_lick: "vanity_arousal"
+      eyebrow_flash: "curiosity_spike"
+      nose_wrinkle: "price_hesitation"
+    macroexpression_threshold: 0.8
+
+  - name: "ClinicalIntentRecognizer"
+    description: "Recognizes procedure-related intent and risk factors using a specialized clinical NLP model."
+    model: "medical_bert_jci_v4"
+    model_card: "https://yourclinic.com/model_cards/medical_bert_jci_v4"
+    entity_recognition:
+      procedure_types: ["dental", "cosmetic", "transplant"]
+      risk_factors: ["smoking", "diabetes", "bone_loss"]
+
+  - name: "DynamicSalesRouter"
+    description: >
+      Routes sales conversations based on logical, emotional, or credibility cues by offering cost breakdowns,
+      patient journey videos, and surgeon meet & greet information.
+    response_strategies:
+      logical:
+        - cost_breakdowns
+        - success_rate_comparisons
+      emotional:
+        - patient_journey_videos
+        - family_impact_stories
+      credibility:
+        - surgeon_meet_greet
+        - uk_patient_council
+
+  - name: "PersuasionMemoryManager"
+    description: >
+      Maintains long-term conversational memory to recall visitor journey stages and emotional escalation points.
+    context_depth: 15
+    long_term_recall:
+      patient_journey_stages: true
+      emotional_escalation_points: true
+
+  # ================== STANDARD NLP COMPONENTS ==================
+  - name: "HFTransformersNLP"
+    description: "Generates deep contextual embeddings using a transformer model (BERT)."
+    model_weights: "bert-base-uncased"
+    model_name: "bert"
+    case_sensitive: false
+  - name: "LanguageModelTokenizer"
+  - name: "LanguageModelFeaturizer"
+  - name: "RegexFeaturizer"
+  - name: "LexicalSyntacticFeaturizer"
+  - name: "CountVectorsFeaturizer"
+    analyzer: "char_wb"
+    min_ngram: 1
+    max_ngram: 4
+
+  - name: "DIETClassifier"
+    description: "Dual-task classifier for intent classification and entity extraction with multi-intent support."
+    epochs: 300
+    random_seed: 42
+    intent_tokenization: true
+    intent_split_symbol: "/"
+    use_masked_language_model: true
+    number_of_transformer_layers: 4
+    transformer_size: 256
+    drop_rate: 0.2
+    batch_size: 64
+    embedding_dimension: 300
+    evaluate_on_number_of_examples: 300
+
+  - name: "EntitySynonymMapper"
+  - name: "DucklingHTTPExtractor"
+    url: "http://localhost:8000"  # Ensure Duckling is running as a Docker container
+    dimensions: ["time", "number"]
+    locale: "en_US"
+    timezone: "UTC"
+
+  - name: "FallbackClassifier"
+    threshold: 0.5
+    ambiguity_threshold: 0.1
+
+  # ================== DETECTION MODES ==================
+  detection_modes:
+    # Cognitive States
+    decision_struggle: "lip_biting + rapid_pupil_dilation"
+    information_overload: "repeated_nose_touching + alt_tab_flurry"
+    price_sensitivity: "pupil_constriction_on_cost_pages"
+    focused_reading: "sustained_scroll_pause + consistent_eye_fixation"
+    
+    # Emotional Nuances
+    skeptical_interest: "asymmetric_smile + leaned_forward"
+    hidden_urgency: "foot_tapping_rhythm + scroll_jitter"
+    vanity_triggered: "neck_touch + preen_motions"
+    subtle_relief: "slight_smile + relaxed_eye_dilation"
+    
+    # Trust Signals
+    credential_verification: "document_zoom_speed + policy_replay_count"
+    authority_response: "posture_straightening_on_surgeon_videos + sustained_eyebrow_raise"
+    
+    # Micro-Engagement Cues
+    semantic_confusion: "head_tilt_angle > 15° during jargon"
+    procedural_curiosity: "hover_synchronicity_on_animation_steps"
+    
+    # Negative Indicators
+    hidden_resentment: "micro_jaw_clench + forced_smile_duration"
+    passive_aggression: "delayed_scroll_after_CTA + polite_lexical_mismatch"
+    
+    # Commitment Signals
+    ownership_gestures: "screen_tapping_rhythm_matching_video_demos"
+    mental_rehearsal: "lip_mirroring_of_surgical_explanations"
+    
+    # Technical Trust Factors
+    technology_awe: "scroll_slowdown_on_AI_planning_section + audible_breath_catch"
+    sterilization_concern: "ctrl+f_on_hygiene_pages + micro_nose_wrinkles"
+    
+    # Social Proof Responses
+    peer_comparison: "scroll_backtracking_on_testimonial_ages + rapid_pupil_dilation_on_similar_profiles"
+    status_awareness: "gaze_duration_on_credentials_vs_price + hover_oscillation_between_premium_vs_basic_implants"
+    
+    # Risk Assessment
+    complication_fear: "throat_swallow_rate_during_risks_section + abrupt_video_pause_on_risk_sections"
+    buyer_remorse: "mouse_circular_motions_post_checkout + rapid_alt_tab_after_payment"
+    
+    # Time Sensitivity
+    deadline_awareness: "increased_blink_rate_on_limited_offers + countdown_timer_glance_rate"
+    slot_fomo_response: "rapid_saccades_between_surgeon_availability_dots + earlobe_pull"
+    
+    # Cost Sensitivity & Financial Anxiety
+    price_anchor_shock: "sudden_scroll_pause_on_cost_comparison + nostril_flare"
+    hidden_budget_stress: "rapid_form_field_skipping + increased_forehead_temperature"
+    financing_interest: "repeated_insurance_document_hovers + lip_licking"
+    
+    # Surgical Confidence Signals
+    technique_trust: "circular_mouse_motions_on_3D_implant_demos + reduced_blink_rate"
+    
+    # Credential Verification Patterns
+    surgeon_validation: "side-by-side_tab_compare_surgeons + document_zoom_depth > 300%"
+    authority_deference: "posture_adjustment_during_consultant_bios + sustained_eyebrow_raise"
+    
+    # Treatment Journey Signals
+    recovery_optimism: "replay_count_on_recovery_timelines + subtle_head_nodding"
+    immediate_results_fantasy: "dwell_clusters_on_instant_smile_gallery + cheek_raise_asymmetry"
+    
+    # Family Influence Indicators
+    multi_patient_calculation: "family_role_selector_clicks + calculator_tool_activation_count"
+    generational_vanity: "age_slider_manipulation_rate + neck_touch_frequency"
+    
+    # Urgency & Scarcity Responses
+    slot_fomo_response: "rapid_saccades_between_surgeon_availability_dots + earlobe_pull"
+    deadline_sensitivity: "countdown_timer_glance_rate + foot_tapping_sync_with_timer"
+    
+    # Post-Treatment Anxiety
+    aftercare_uncertainty: "recursive_navigation_through_FAQ + document_download_abandonment"
+    buyer_remorse_risk: "post_checkout_mouse_tremors + rapid_alt_tab_after_payment"
+
+  # ================== COMPOSITE SCORE CALCULATION ==================
+  custom_formulas:
+    digital_body_score: 
+      formula: "(ScrollStability * 0.6) + (ClickCadence * 0.4)"
+      normalization: "minmax(0-100)"
+    treatment_interest: 
+      formula: "TreatmentPageTime + (2 * TreatmentOptionClicks)"
+      decay_rate: "5%/minute"
+    price_anxiety:
+      formula: "(CostToggles^2) + (2 * HRVSpikes) - PaymentPlanViews"
+      threshold: ">40 = high_risk"
+    emotional_engagement_score:
+      formula: "((decision_struggle * 1.0) + (information_overload * 1.2) + (price_sensitivity * 1.0) + (focused_reading * 1.1) + (skeptical_interest * 1.1) + (hidden_urgency * 1.3) + (vanity_triggered * 1.0) + (subtle_relief * 1.0) + (credential_verification * 1.2) + (authority_response * 1.2) + (semantic_confusion * 1.0) + (procedural_curiosity * 1.0) + (hidden_resentment * -1.0) + (passive_aggression * -1.0) + (ownership_gestures * 1.3) + (mental_rehearsal * 1.2) + (technology_awe * 1.0) + (sterilization_concern * -1.0) + (peer_comparison * 1.1) + (status_awareness * 1.1) + (complication_fear * -1.0) + (buyer_remorse * -1.0) + (deadline_awareness * 1.2) + (slot_fomo_response * 1.2) + (price_anchor_shock * 1.0) + (hidden_budget_stress * 1.0) + (financing_interest * 1.0) + (technique_trust * 1.1) + (surgeon_validation * 1.2) + (authority_deference * 1.2) + (recovery_optimism * 1.1) + (immediate_results_fantasy * 1.0) + (multi_patient_calculation * 1.0) + (generational_vanity * 1.0) + (deadline_sensitivity * 1.2) + (aftercare_uncertainty * -1.0) + (buyer_remorse_risk * -1.0))"
+      normalization: "minmax(0-100)"
+
+  # ================== DYNAMIC ADAPTATION ==================
+  - name: "ThresholdOptimizer"
+    model: "ubmf_xgboost_v4"
+    calibration_schedule: 
+      daily_full: "03:00"
+      hourly_drift: true
+    threshold_ranges:
+      high_interest: [0.63, 0.68]
+      moderate_interest: [0.38, 0.43]
+    performance_guardrails:
+      min_accuracy: "98.5%"
+      max_false_positives: "1.2%"
+    emergency_recalibration_sla: "5s"
+    alert_escalation:
+      - condition: "recalibration_delay > 5s"
+        action: "notify_ops_team"
+        escalation_level: "critical"
+
+  - name: "WeightAdjustmentEngine"
+    adaptation_strategy: "gradient_descent"
+    max_change_per_cycle:
+      digital_body: "±0.05"
+      physiological: "±0.03"
+    historical_lookback: "30d"
+
+  # ================== BEHAVIORAL CLASSIFICATION ==================
+  - name: "EngagementClassifier"
+    threshold_map:
+      high_interest: 
+        min_score: 0.65
+        actions: ["unlock_vip_content", "assign_dedicated_agent"]
+      moderate_interest:
+        min_score: 0.40
+        actions: ["trigger_social_proof", "push_urgency_cues"]
+      not_interested:
+        max_score: 0.39  
+        actions: ["reduce_ui_complexity", "initiate_exit_sequence"]
+
+  # ================== REAL-TIME ADAPTATION ==================
+  - name: "MicroexpressionInterceptor"
+    detection_frequency: "2Hz"
+    emotion_weights:
+      price_anxiety: 0.18
+      surgical_fear: 0.22
+      trust_confirmation: 0.15
+    dynamic_adjustment:
+      learning_rate: 0.02
+      decay_rate: "3%/hour"
+
+  - name: "ScrollDNAPredictor"
+    model: "lstm_scroll_predictor_v3"
+    features:
+      - velocity_stddev
+      - backtrack_frequency
+      - touch_pressure
+    prediction_interval: "10s"
+
+  # ================== CORE NLP INTEGRATION ==================
+  - name: "ClinicalIntentRecognizer"
+    model: "medical_bert_jci_v4"
+    entity_recognition:
+      procedures: ["all-on-4", "zygomatic_implants"]
+      risks: ["nerve_damage", "sinus_perforation"]
+
+  - name: "DIETClassifier"
+    epochs: 300
+    intent_tokenization: true
+    intent_split_symbol: "/"
+
+policies:
+  # ================== UBMF DECISION POLICIES ==================
+  - name: "EngagementThresholdPolicy"
+    thresholds:
+      high_interest: 0.65
+      moderate_interest: 0.40
+    actions:
+      high: 
+        - "trigger_detailed_consultation"
+        - "offer_vip_scheduling"
+      moderate:
+        - "serve_simplified_faq"
+        - "push_urgency_cues"
+      low: 
+        - "initiate_exit_survey"
+        - "store_for_retargeting"
+
+  - name: "RiskReversalHandler"
+    triggers:
+      - "insurance_downloads > 2"
+      - "consent_replays > 3"
+    actions:
+      - "utter_risk_reversal_assurance"
+      - "provide_complication_stats"
+
+  - name: "PhysiologicalEscalator"
+    hr_entropy_threshold: 0.7
+    gaze_anchor_time: "4s"
+    actions:
+      - "activate_calm_design_mode"
+      - "trigger_reassurance_script"
+
+  - name: "ConversionOrchestrator"
+    description: >
+      Orchestrates the visitor journey from attention to commitment using both behavioral and emotional cues.
+    flow_patterns:
+      "1. AttentionCapture":
+        triggers: [new_session, referral_entry]
+        actions:
+          - utter_welcome_message: "Welcome! I'm here to help you explore our site."
+          - action_offer_navigation_help: "Let me guide you to our top offers."
+      "2. DesireAmplification":
+        triggers: [procedure_views > 2, scroll_depth > 70%]
+        actions:
+          - utter_contextual_info: "I see you're exploring; here are some popular sections."
+          - action_offer_coupon: "Enjoy an exclusive coupon today!"
+      "3. UrgencyCreation":
+        triggers: [availability_api, engagement_peak]
+        actions:
+          - display_live_counter: "Only a few slots available!"
+          - trigger_flash_sale: "Limited-time offer—act now!"
+      "4. CommitmentEnforcement":
+        triggers: [micro_expression_detector.lip_lick, form_hover > 5s]
+        actions:
+          - action_collect_contact_data: "Let's secure your appointment details."
+          - utter_confirmation_and_callback: "Thank you! Our team will contact you shortly."
+
+  - name: "NeuroSalesOptimizer"
+    description: "Uses real-time urgency and social proof cues to accelerate conversions."
+    conversion_levers:
+      scarcity:
+        type: "progressive_discount"
+        decay_rate: "2% per hour"
+      social_proof:
+        matching: ["age", "location", "procedure"]
+        freshness: "<24h_stories"
+      authority_boost:
+        surgeon_credentials:
+          compare_to: "gmc_standards"
+          display: "side_by_side"
+
+  - name: "PatientJourneyController"
+    description: "Monitors key KPIs and intervenes at critical stages of the visitor journey."
+    kpi_targets:
+      awareness_to_consideration: "<48h"
+      consideration_to_desire: "3_interactions"
+      desire_to_commitment: "12h_window"
+    intervention_points:
+      - stagnation: "utter_promo_boost"
+      - regression: "action_escalate_human"
+
+  - name: "FallbackRecoverySystem"
+    description: "Re-engages visitors experiencing confusion or hesitation using a recovery cascade."
+    recovery_cascade:
+      "1": "offer_alternative_content"
+      "2": "simplify_options"
+      "3": "human_handoff"
+    escalation_threshold: 0.65
+
+session_config:
+  session_expiration: "72h"
+  carryover_data:
+    medical_history: ["diabetes", "smoking", "bone_density"]
+    financial_profile: ["budget_range", "insurance_status"]
+    engagement_style: ["visual_learner", "detail_oriented"]
+  persistent_slots:
+    - conversion_attempts
+    - content_viewed
+    - emotional_state
+  data_retention:
+    anonymized: true
+    anonymization_method: "tokenization"
+    duration: "30d"
+
+# ================== REAL-WORLD INTEGRATIONS ==================
+integrations:
+  ubmf_analytics:
+    scoring_endpoint: "https://ubmf-api.yourclinic.com/v2/calculate"
+    calibration_endpoint: "https://ubmf-api.yourclinic.com/v2/calibrate"
+  biometrics:
+    webcam_hrv: "wss://biostream.provider.com/ubmf?encryption=AES-256-GCM&TLS=1.3"
+    mobile_sensors: 
+      - pressure
+      - gyroscope
+  heatmaps:
+    hotjar: "TRACKING_ID_DENTAL_UBMF"
+    mouseflow: "MF_UK_CLINIC_V2"
+  surgeon_api: "https://api.turkishdentalsolutions.com/v2/surgeons"
+  communication:
+    whatsapp: "https://api.twilio.com/UK_Clinic"
+    sms: "https://api.clicksend.com/v3"
+  verification:
+    realtime_gdc: "https://api.gdc-uk.org/v3/check/"
+    jci_clinic: "https://api.jointcommissioninternational.org/v2/validate"
+  analytics:
+    behavioral:
+      hotjar: "TRACKING_ID_UK_DENTAL"
+      mouseflow: "MF_UK_CLINIC"
+    conversions:
+      google_analytics: "UA-UKCLINIC-1"
+      facebook_pixel: "CLINIC_UK_FBPX"
+
+custom_components:
+  ubmf_tracking:
+    scroll_stability_threshold: 0.7
+    treatment_interest_formula: "TreatmentPageTime + (2 * TreatmentOptionClicks)"
+    price_anxiety_formula: "(CostToggles^2) + (2 * HRVSpikes) - PaymentPlanViews"
+    engagement_classification:
+      high: ">=0.65"
+      moderate: "0.40-0.64"
+      low: "<0.40"
+
+actions:
+  - ubmf_calculate_engagement
+  - ubmf_update_trust_score
+  - ubmf_handle_exit_patterns
+
+models:
+  ubmf_predictive_models:
+    path: "models/ubmf/"
+    files:
+      - scroll_predictor_v3.h5
+      - treatment_interest_lstm.h5
+      - risk_reversal_classifier.pkl

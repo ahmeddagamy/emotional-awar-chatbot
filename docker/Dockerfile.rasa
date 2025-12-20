@@ -1,0 +1,55 @@
+# ---------- Builder: install deps & train model ----------
+    FROM rasa/rasa:3.6.20-full as builder
+
+    # Prevent interactive tz prompts etc.
+    ENV PIP_NO_CACHE_DIR=1 \
+        RASA_TELEMETRY_ENABLED=false
+    
+    WORKDIR /app
+    
+    # Copy only the files needed for dependency resolution first (better layer caching)
+    COPY requirements.txt ./requirements.txt
+    
+    # Install extra project deps (if requirements.txt pins rasa/rasa-sdk, it's ok; base already has them)
+    RUN --mount=type=cache,target=/root/.cache/pip \
+        pip install -r requirements.txt || true
+    
+    # Copy the rest of the project (domain, data, config, endpoints examples, actions for validation)
+    COPY . /app
+    
+    # Validate NLU/stories/rules and train a model artifact
+    # If you don't want to train at build-time, comment these and provide a model via CI.
+    RUN rasa data validate && \
+        rasa train --fixed-model-name model.tar.gz
+    
+    # ---------- Runtime: smaller image just to serve the trained model ----------
+    FROM rasa/rasa:3.6.20
+    
+    ENV RASA_TELEMETRY_ENABLED=false \
+        RASA_LOG_LEVEL=INFO
+    
+    WORKDIR /app
+    
+    # Copy only what’s required at runtime
+    COPY --from=builder /app/models/model.tar.gz /app/models/model.tar.gz
+    COPY config.yml domain.yml /app/
+    COPY endpoints.yml /app/endpoints.yml
+    COPY credentials.yml /app/credentials.yml
+    # Optional: responses or any extra runtime assets you use
+    COPY data /app/data
+    
+    # Expose Rasa API port
+    EXPOSE 5005
+    
+    # Simple healthcheck (Rasa exposes /health)
+    HEALTHCHECK --interval=15s --timeout=5s --retries=10 CMD \
+      curl -fsS http://localhost:5005/health || exit 1
+    
+    # Run the server. If you need CORS, set RASA_CORS in the environment or docker-compose.
+    CMD ["run", \
+         "--enable-api", \
+         "--cors", "*", \
+         "--host", "0.0.0.0", \
+         "--port", "5005", \
+         "--log-level", "INFO"]
+    

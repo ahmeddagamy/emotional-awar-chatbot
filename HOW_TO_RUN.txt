@@ -1,0 +1,87 @@
+================================================================================
+                    HOW TO START THE DENTAL CHATBOT
+================================================================================
+
+EASIEST WAY (Recommended):
+-------------------------
+1. Double-click: start_production.bat
+2. Wait 30 seconds
+3. Open browser: http://localhost:8081
+4. Done!
+
+
+MANUAL WAY (If script doesn't work):
+-------------------------------------
+Open 3 Command Prompt windows:
+
+WINDOW 1 - Vision Server:
+  cd C:\Users\User\dental_chatbot
+  python run_vision_server.py
+
+WINDOW 2 - Rasa Server:
+  cd C:\Users\User\dental_chatbot\rasa_bot\actions
+  rasa run --enable-api --port 5005
+
+WINDOW 3 - Rasa Actions:
+  cd C:\Users\User\dental_chatbot\rasa_bot\actions
+  rasa run actions --port 5055
+
+Then open browser: http://localhost:8081
+
+
+WHAT YOU NEED:
+--------------
+✓ Python 3.8+ (You have 3.11 - Good!)
+✓ Internet connection (for first-time dependency install)
+✓ Webcam (for testing emotion detection)
+✓ Browser (Chrome or Edge recommended)
+
+
+WHAT TO EXPECT:
+---------------
+After running start_production.bat:
+  → 3 new windows will open (one for each service)
+  → You'll see startup messages in each window
+  → Wait until all say "running" or "started"
+  → Then open http://localhost:8081 in your browser
+
+
+TESTING:
+--------
+1. Go to: http://localhost:8081
+2. Click "Allow" when browser asks for camera permission
+3. Type "hello" in the chat box
+4. You should see:
+   - Chatbot responds
+   - Your face detected
+   - Emotion values showing (gaze, expression, etc.)
+
+
+TROUBLESHOOTING:
+----------------
+Problem: "Python not found"
+  → Install Python from python.org
+  → Make sure to check "Add to PATH"
+
+Problem: "Module not found"
+  → Run: pip install -r requirements.txt
+
+Problem: "Port already in use"
+  → Close other programs using ports 8081, 5005, 5055
+  → Or restart your computer
+
+Problem: Camera not working
+  → Check browser permissions
+  → Try Chrome or Edge browser
+  → Make sure no other app is using camera
+
+
+STOPPING:
+---------
+Just close all 3 windows that opened, or press Ctrl+C in each terminal.
+
+
+For more details, see: QUICK_START_WINDOWS.md
+
+================================================================================
+

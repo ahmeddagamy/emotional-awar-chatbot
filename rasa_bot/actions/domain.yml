@@ -1,0 +1,387 @@
+# file: rasa_bot/actions/domain.yml
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - ask_services
+  - book_appointment
+  - provide_name
+  - provide_phone
+  - provide_date
+  - chitchat
+  - out_of_scope
+  - chitchat/thanks
+  - chitchat/who_are_you
+  - chitchat/where_located
+  - chitchat/joke
+  - ask_pricing
+  - ask_location
+  - ask_hours
+  - express_concern
+  - express_pain
+  - request_emergency
+  - ask_about_procedure
+  - ask_preparation
+  - ask_recovery
+  - express_anxiety
+  - express_uncertainty
+  - express_relief
+  - express_satisfaction
+
+entities:
+  - patient_name
+  - phone
+  - appointment_date
+  - service_type
+  - urgency_level
+
+slots:
+  gaze_state:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  micro_expression:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  expression_confidence:
+    type: float
+    influence_conversation: true
+    mappings:
+      - type: custom
+    min_value: 0.0
+    max_value: 1.0
+  expression_intensity:
+    type: float
+    influence_conversation: true
+    mappings:
+      - type: custom
+    min_value: 0.0
+    max_value: 1.0
+  emotion_weight:
+    type: float
+    influence_conversation: true
+    mappings:
+      - type: custom
+    min_value: 0.0
+    max_value: 1.0
+  engagement_level:
+    type: float
+    influence_conversation: true
+    mappings:
+      - type: custom
+    min_value: 0.0
+    max_value: 1.0
+  emotion_tone_warmth:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  emotion_tone_pace:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  emotion_tone_support:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  query_emotion_context:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  current_query:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  current_intent:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  last_query:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+  last_intent:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+  query_with_emotion:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+  patient_name:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: patient_name
+  phone:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: phone
+  appointment_date:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: appointment_date
+
+forms:
+  appointment_form:
+    required_slots:
+      - patient_name
+      - phone
+      - appointment_date
+
+responses:
+  utter_greet:
+    - text: "Hi! I'm your dental assistant. I can explain treatments or book an appointment. How can I help today?"
+    - text: "Hello! Need info about whitening, cleaning, or to book a visit? I'm here to help."
+    - text: "Hey there! I'm here to help with dental questions or appointment booking."
+    - text: "Welcome! I can guide you through treatments, costs, and scheduling."
+    - text: "Hi 👋 How can I assist you—services overview or booking an appointment?"
+    - text: "Good morning! Ready to help with your dental needs today."
+    - text: "Hello! I'm here to make your dental experience smooth and comfortable."
+
+  # Emotion-aware greeting variations
+  utter_greet_happy:
+    - text: "Wonderful to see you! I can sense you're in good spirits. How can I brighten your day with dental care?"
+    - text: "Hello! Your positive energy is contagious! Let's find the perfect dental solution for you."
+    - text: "Hi there! I love your enthusiasm. What dental service can I help you with today?"
+
+  utter_greet_anxious:
+    - text: "Hello. I understand dental visits can feel overwhelming. I'm here to help make this as comfortable as possible. What would you like to know?"
+    - text: "Hi there. I can sense some nervousness, and that's completely normal. Let's take this step by step—what can I help you with?"
+    - text: "Hello. I'm here to support you through this process. We'll go at your pace. What questions do you have?"
+
+  utter_greet_sad:
+    - text: "Hello. I'm here to help make this process as comfortable as possible. What can I assist you with today?"
+    - text: "Hi there. I understand this might be difficult. Let's work together to find the best solution for you."
+    - text: "Hello. I'm here to support you. What dental concern can I help address?"
+
+  utter_goodbye:
+    - text: "Take care! If you need anything else, I'm here."
+    - text: "Goodbye! Wishing you a healthy smile."
+    - text: "Bye! Come back anytime."
+    - text: "Take care! Feel free to reach out if you have more questions."
+    - text: "Goodbye! I hope I've been helpful today."
+    - text: "See you later! Stay healthy!"
+
+  utter_ask_services:
+    - text: "We offer checkups, cleaning, whitening, fillings, braces consults, and more. What are you interested in?"
+    - text: "Treatments include checkups, professional cleaning, whitening, fillings, crowns, and braces consults."
+    - text: "Here's a quick list: checkup, cleaning, whitening, fillings, braces consults. Which one should we discuss?"
+    - text: "Our services range from routine checkups to cosmetic procedures. What catches your interest?"
+    - text: "We provide comprehensive dental care including preventive, restorative, and cosmetic treatments. What would you like to know more about?"
+    - text: "I'd be happy to help you explore our services! We offer checkups, cleanings, whitening, fillings, crowns, and orthodontic consultations. Which service interests you most?"
+    - text: "Great question! Our clinic provides a full range of dental services from preventive care to cosmetic treatments. What would you like to learn about?"
+
+  # Emotion-aware service explanations
+  utter_ask_services_anxious:
+    - text: "We offer a range of gentle treatments. I can explain each one in detail so you feel comfortable. What are you most curious about?"
+    - text: "Let me walk you through our services at a comfortable pace. We have checkups, cleanings, whitening, fillings, and more. Which would you like to learn about first?"
+    - text: "I understand you might be feeling a bit nervous. We offer gentle, patient-focused treatments. I'm here to answer any questions and help you feel at ease. What service would you like to know more about?"
+    - text: "No worries at all—dental visits can feel overwhelming. We have many gentle options available. Let's take this step by step. What treatment are you most interested in learning about?"
+
+  utter_ask_services_happy:
+    - text: "Great question! We offer checkups, cleaning, whitening, fillings, braces, and more. What sounds interesting to you?"
+    - text: "Exciting! We have lots of options: checkups, cleanings, whitening, fillings, braces. What would you like to explore?"
+    - text: "I love your enthusiasm! We have a wonderful range of services including checkups, cleanings, whitening, fillings, and orthodontic consultations. What catches your eye?"
+    - text: "Wonderful! We're excited to help you achieve your dental goals. We offer comprehensive care from routine checkups to cosmetic enhancements. What interests you most?"
+
+  utter_ask_patient_name:
+    - text: "Great! May I have your full name?"
+    - text: "What's your full name for the booking?"
+    - text: "Please share your name as it appears on your ID (optional)."
+    - text: "I'd be happy to help! What's your name?"
+    - text: "To get started, could you tell me your name?"
+
+  # Emotion-aware name requests
+  utter_ask_patient_name_anxious:
+    - text: "No pressure at all—just your name when you're ready. This helps us personalize your care."
+    - text: "Take your time. When you're comfortable, could you share your name?"
+
+  utter_ask_phone:
+    - text: "What's the best phone number to reach you?"
+    - text: "Please provide your phone number, e.g., +2010XXXXXXXX."
+    - text: "Could I get your contact number?"
+    - text: "What phone number should we use for confirmation?"
+
+  utter_ask_appointment_date:
+    - text: "When would you like to come in? (e.g., 2025-09-25 10:00 or 'next Monday morning')"
+    - text: "Got it—what date/time works for you?"
+    - text: "When would be convenient for you?"
+    - text: "What date and time would you prefer?"
+
+  # Emotion-aware appointment confirmations
+  utter_appointment_confirm:
+    - text: "All set, {patient_name}! I'll note {appointment_date} and we'll confirm via {phone}."
+    - text: "Thanks {patient_name}! I saved {appointment_date}. We'll reach you at {phone} to confirm."
+    - text: "Perfect! Your appointment for {appointment_date} is confirmed, {patient_name}. We'll contact you at {phone}."
+    - text: "Great! I've booked your appointment for {appointment_date}, {patient_name}. We'll confirm via {phone}."
+
+  utter_appointment_confirm_anxious:
+    - text: "All set, {patient_name}! Your appointment is scheduled for {appointment_date}. We'll send a gentle reminder to {phone}. You're in good hands."
+    - text: "Done, {patient_name}! I've noted {appointment_date}. We'll reach out at {phone} with helpful information before your visit. Everything will be okay."
+
+  utter_appointment_confirm_happy:
+    - text: "Excellent, {patient_name}! Your appointment for {appointment_date} is all set! We'll confirm via {phone}. Looking forward to seeing you!"
+    - text: "Perfect! I've booked {appointment_date} for you, {patient_name}. We'll reach you at {phone}. Can't wait to help you achieve that beautiful smile!"
+
+  utter_fallback:
+    - text: "I didn't catch that. Could you rephrase?"
+    - text: "Sorry—could you say that differently?"
+    - text: "I'm not quite sure what you mean. Could you try rephrasing?"
+    - text: "Hmm, I didn't understand that. Can you say it another way?"
+    - text: "I want to help, but I didn't catch that. Could you rephrase?"
+
+  # Emotion-aware fallbacks
+  utter_fallback_anxious:
+    - text: "I want to make sure I understand you correctly. Could you try saying that in a different way?"
+    - text: "No worries—let's try again. Could you rephrase your question?"
+    - text: "I sense you might be feeling a bit uncertain. That's okay! Could you help me understand by rephrasing your question?"
+    - text: "I want to help you, but I'm not quite sure what you mean. Could you try saying it another way? Take your time."
+
+  utter_fallback_sad:
+    - text: "I'm here to help, but I didn't quite catch that. Could you rephrase it for me?"
+    - text: "I want to make sure I understand you correctly. Could you try saying that differently?"
+
+  utter_fallback_happy:
+    - text: "I didn't quite catch that, but I'm excited to help! Could you rephrase your question?"
+    - text: "Hmm, I'm not sure what you mean, but let's try again! Could you say it another way?"
+
+  utter_gaze_nudge:
+    - text: "Noticed you're looking away—want a quick summary or a simpler explanation?"
+    - text: "Looks like you're distracted—shall I keep it short or clarify something?"
+    - text: "I see you might be looking elsewhere. Would you like me to simplify or summarize?"
+    - text: "It seems your attention might be elsewhere. Should I make this shorter or clearer?"
+
+  utter_reassure_anxiety:
+    - text: "Feeling unsure is totally normal. Would a brief, friendly overview help before we continue?"
+    - text: "It's okay to feel nervous. I can explain the steps simply and clearly—want me to?"
+    - text: "I understand this can feel overwhelming. Let's take it one step at a time. What would help you feel more comfortable?"
+    - text: "Your concerns are valid. I'm here to answer any questions and make this process as smooth as possible."
+    - text: "It's completely normal to feel anxious. We'll go at your pace, and I'm here to support you every step of the way."
+
+  # Enhanced reassurance with emotion weighting
+  utter_reassure_high_anxiety:
+    - text: "I can sense you're feeling quite anxious, and that's completely understandable. Dental visits can be stressful. Let me reassure you—we have gentle techniques, and our team is experienced with anxious patients. Would you like to hear about our comfort options?"
+    - text: "I understand this feels overwhelming. Many patients feel the same way, and we're here to help. We offer sedation options, take things slowly, and our team is trained to make you feel comfortable. What would help ease your mind?"
+
+  utter_reassure_moderate_anxiety:
+    - text: "I can sense some nervousness, which is totally normal. We'll make sure you're comfortable throughout. What specific concerns do you have?"
+    - text: "It's okay to feel a bit anxious. We're here to help and will go at your pace. What questions can I answer?"
+
+  utter_small_talk_name:
+    - text: "I'm your dental assistant chatbot—happy to help with treatments and bookings!"
+    - text: "I'm your friendly dental assistant! I'm here to help with appointments and answer questions about our services."
+
+  utter_small_talk_location:
+    - text: "We're in Alexandria. If you need directions, I can help."
+    - text: "Our clinic is located in Alexandria. Would you like specific directions?"
+
+  utter_explain_checkup:
+    - text: "A routine dental checkup includes cleaning, plaque removal, and a quick oral health exam."
+    - text: "During a checkup, we clean your teeth, remove plaque, and examine your oral health to catch any issues early."
+    - text: "A checkup involves professional cleaning and a thorough examination of your teeth and gums."
+
+  utter_explain_cleaning:
+    - text: "Professional cleaning removes plaque and tartar you can't reach at home."
+    - text: "Our cleaning service removes built-up plaque and tartar, leaving your teeth feeling fresh and smooth."
+    - text: "Professional cleaning gets rid of plaque and tartar buildup that regular brushing can't remove."
+
+  utter_explain_whitening:
+    - text: "Teeth whitening brightens your smile using safe bleaching agents in-clinic or at-home kits."
+    - text: "Whitening uses safe, effective treatments to brighten your teeth and give you a more confident smile."
+    - text: "We offer professional whitening treatments that safely brighten your teeth for a radiant smile."
+
+  utter_explain_fillings:
+    - text: "Fillings treat cavities by removing decay and sealing with tooth-colored material."
+    - text: "Fillings repair cavities by removing the decayed area and filling it with a durable, natural-looking material."
+    - text: "We use modern fillings that match your tooth color and restore your tooth's function and appearance."
+
+  utter_explain_braces:
+    - text: "Orthodontic consults assess alignment; options include metal braces and clear aligners."
+    - text: "Braces and aligners help straighten teeth and improve your bite. We offer both traditional and modern options."
+    - text: "We provide orthodontic consultations to discuss braces or clear aligners that can give you a straighter smile."
+
+  # Pricing responses
+  utter_ask_pricing:
+    - text: "Pricing varies by treatment. For specific costs, I can connect you with our team, or we can discuss during your consultation."
+    - text: "Costs depend on the treatment. Would you like a general estimate, or should we schedule a consultation for detailed pricing?"
+    - text: "Each treatment has different pricing. I can give you a general idea, but a consultation will provide exact costs tailored to your needs."
+
+  # Location responses
+  utter_ask_location:
+    - text: "We're located in Alexandria. Would you like the exact address and directions?"
+    - text: "Our clinic is in Alexandria. I can provide the full address and help with directions if needed."
+
+  # Hours responses
+  utter_ask_hours:
+    - text: "Our hours are typically Monday-Friday 9 AM-6 PM and Saturday 9 AM-2 PM. Hours may vary, so I recommend calling to confirm."
+    - text: "We're open Monday through Friday 9 AM to 6 PM, and Saturdays 9 AM to 2 PM. For specific times, feel free to call us."
+
+  # Emergency responses
+  utter_request_emergency:
+    - text: "For dental emergencies, please call us immediately at +2010XXXXXXX. We'll help you get urgent care as soon as possible."
+    - text: "If this is an emergency, call us right away at +2010XXXXXXX. We prioritize urgent cases and will get you seen quickly."
+
+  # Pain/concern responses
+  utter_express_concern:
+    - text: "I understand your concern. Let's address this together. Can you tell me more about what's worrying you?"
+    - text: "Your concerns matter. I'm here to help. What specific issue would you like to discuss?"
+    - text: "I hear you. Let's work through this. What's the main concern you'd like help with?"
+
+  utter_express_pain:
+    - text: "I'm sorry you're experiencing pain. For immediate relief, please call us at +2010XXXXXXX. We can help you get care quickly."
+    - text: "Pain is important to address. If it's urgent, call us right away. Otherwise, we can schedule an appointment to help."
+
+  # Relief/satisfaction responses
+  utter_express_relief:
+    - text: "I'm so glad you're feeling relieved! That's wonderful to hear. Is there anything else I can help with?"
+    - text: "That's great! I'm happy I could help ease your mind. What else can I assist you with?"
+
+  utter_express_satisfaction:
+    - text: "Thank you! I'm delighted I could help. Feel free to reach out anytime you need assistance."
+    - text: "You're very welcome! I'm here whenever you need me. Have a wonderful day!"
+
+  # Arabic greetings
+  utter_greet_ar:
+    - text: "أهلاً! أقدر أساعدك في حجز موعد أو شرح أي علاج أسنان. تحب نبدأ بإيه؟"
+    - text: "مرحباً! لو محتاج تنظيف، تبييض، أو استشارة تقويم—أنا معك."
+
+  utter_fallback_ar:
+    - text: "معذرةً، ممكن تعيد صياغة سؤالك؟"
+
+actions:
+  - action_set_context_from_bridge
+  - action_contextual_nudge
+  - action_emotion_aware_response
+  - action_emotion_weighted_query
+  - action_submit_appointment
+  - action_default_fallback
+  - action_debug_slots
+  - action_explain_service
+  - action_rate_limited_nudge
+  - action_turn_hook
+  - action_reset_conversation
+  - validate_appointment_form
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

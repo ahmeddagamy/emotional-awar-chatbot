@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.venv/
+venv/
+ENV/
+.env
+.env.*        
+
+# Tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Rasa
+.rasa/
+models/
+events.out
+*.tar.gz      # trained model archives
+
+# Logs
+*.log
+logs/
+nohup.out
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Node/Web (if you build web assets)
+node_modules/
+dist/
+build/
+web_integration/**/node_modules/
+web_integration/**/dist/
+web_integration/**/build/
+
+# Secrets (keep real ones out of git)
+credentials.yml
+endpoints.yml
+endpoints.local.yml
+*secrets*.yml
+*.key
+*.pem
+
+# Docker
+# (optional: keep local-only files out)
+docker/.env

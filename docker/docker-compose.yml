@@ -1,0 +1,156 @@
+version: "3.9"
+
+x-common-env: &common-env
+  RASA_TELEMETRY_ENABLED: ${RASA_TELEMETRY_ENABLED:-false}
+  RASA_LOG_LEVEL: ${RASA_LOG_LEVEL:-INFO}
+  ACTIONS_LOG_LEVEL: ${ACTIONS_LOG_LEVEL:-INFO}
+
+services:
+  vision:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.vision
+    image: dental-chatbot/vision:local
+    container_name: vision
+    restart: unless-stopped
+    ports:
+      - "${VISION_API_PORT:-8081}:8081"
+    environment:
+      ENV: ${ENV:-production}
+      VISION_API_HOST: 0.0.0.0
+      VISION_API_PORT: 8081
+      RASA_SERVER_URL: ${RASA_SERVER_URL:-http://rasa:5005/webhooks/rest/webhook}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-*}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-60}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+    env_file:
+      - ../.env
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8081/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dental-network
+
+  rasa:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.rasa
+    image: dental-chatbot/rasa:local
+    container_name: rasa
+    restart: unless-stopped
+    ports:
+      - "${RASA_PORT:-5005}:5005"
+    environment:
+      <<: *common-env
+      RASA_CORS: ${RASA_CORS:-*}
+      # tell Rasa where the actions live
+      ACTION_ENDPOINT_URL: "http://actions:${ACTIONS_PORT:-5055}/webhook"
+      # tracker store envs (only matter if endpoints.yml uses them)
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-rasa}
+      DB_USER: ${DB_USER:-rasa}
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+      # redis lock store
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_DB: ${REDIS_DB:-0}
+      # event broker
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbit}
+      RABBITMQ_PORT: ${RABBITMQ_PORT:-5672}
+      RABBITMQ_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_QUEUE: ${RABBITMQ_QUEUE:-events}
+    env_file:
+      - .env
+    depends_on:
+      actions:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbit:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5005/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    # If your Dockerfile.rasa already trains the model during build,
+    # this just runs the server:
+    command: >
+      run
+      --enable-api
+      --cors ${RASA_CORS:-*}
+      --host 0.0.0.0
+      --port 5005
+      --log-level ${RASA_LOG_LEVEL:-INFO}
+
+  actions:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.actions
+    image: dental-chatbot/actions:local
+    container_name: actions
+    restart: unless-stopped
+    ports:
+      - "${ACTIONS_PORT:-5055}:5055"
+    env_file:
+      - .env
+    environment:
+      <<: *common-env
+      PYTHONUNBUFFERED: "1"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5055/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    command: >
+      start
+      --actions ${ACTIONS_MODULE:-actions}
+      --port 5055
+
+  # ===== Optional infra (enable by setting TRACKER_ENABLED/LOCK_STORE_ENABLED/EVENT_BROKER_ENABLED) =====
+  postgres:
+    image: postgres:14-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-rasa}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_DB: ${DB_NAME:-rasa}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    expose: ["5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-rasa} -d ${DB_NAME:-rasa}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    expose: ["6379"]
+    command: ["redis-server", "--appendonly", "yes"]
+
+  rabbit:
+    image: rabbitmq:3-alpine
+    container_name: rabbit
+    restart: unless-stopped
+    expose: ["5672"]
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+
+volumes:
+  pgdata:
+
+networks:
+  dental-network:
+    driver: bridge
