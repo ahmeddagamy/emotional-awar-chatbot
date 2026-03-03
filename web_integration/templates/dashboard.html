@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Appointments Dashboard – Dental Chatbot</title>
+  <style>
+    :root {
+      --bg: #0e1320;
+      --surface: #151d2e;
+      --surface2: #1c2640;
+      --accent: #6BB0DD;
+      --accent2: #4d9fc8;
+      --text: #e2e8f0;
+      --muted: #8899aa;
+      --success: #48bb78;
+      --warning: #f6ad55;
+      --danger: #fc8181;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--surface2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
+    header a {
+      color: var(--muted); text-decoration: none; font-size: 0.875rem;
+      padding: 0.4rem 0.8rem; border: 1px solid var(--surface2);
+      border-radius: 6px; transition: color 0.2s, border-color 0.2s;
+    }
+    header a:hover { color: var(--accent); border-color: var(--accent); }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      text-align: center;
+    }
+    .stat-card .value {
+      font-size: 2rem; font-weight: 800; color: var(--accent);
+    }
+    .stat-card .label { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+
+    .toolbar {
+      display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .toolbar input[type="search"] {
+      flex: 1; min-width: 200px;
+      background: var(--surface); border: 1px solid var(--surface2);
+      color: var(--text); border-radius: 8px;
+      padding: 0.5rem 1rem; font-size: 0.9rem; outline: none;
+    }
+    .toolbar input[type="search"]:focus { border-color: var(--accent); }
+    .btn {
+      padding: 0.5rem 1.2rem; border-radius: 8px; font-size: 0.875rem;
+      font-weight: 600; cursor: pointer; border: none; transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--accent); color: #0e1320; }
+    .btn-ghost {
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--surface2);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: var(--radius);
+      overflow: hidden;
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--surface2); }
+    th {
+      padding: 0.85rem 1rem; text-align: left;
+      font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--muted); white-space: nowrap;
+    }
+    td {
+      padding: 0.85rem 1rem; font-size: 0.875rem;
+      border-top: 1px solid var(--surface2);
+    }
+    tr:hover td { background: var(--surface2); }
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 0.2rem 0.65rem; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .badge-success { background: rgba(72,187,120,0.15); color: var(--success); }
+    .badge-pending { background: rgba(246,173,85,0.15); color: var(--warning); }
+
+    .empty {
+      text-align: center; padding: 3rem; color: var(--muted);
+    }
+    .empty .icon { font-size: 3rem; margin-bottom: 1rem; }
+
+    #toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: var(--accent); color: #0e1320;
+      padding: 0.75rem 1.5rem; border-radius: 8px;
+      font-weight: 600; font-size: 0.9rem;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none;
+      z-index: 9999;
+    }
+    #toast.show { opacity: 1; pointer-events: auto; }
+
+    @media (max-width: 640px) {
+      .container { padding: 1rem; }
+      header { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🦷 Appointments Dashboard</h1>
+    <div style="display:flex;gap:.5rem;align-items:center;">
+      <span style="font-size:.8rem;color:var(--muted)">Total: <strong style="color:var(--text)">{{ total }}</strong></span>
+      <a href="/">← Back to Chat</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="value" id="stat-total">{{ total }}</div>
+        <div class="label">Total Appointments</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" id="stat-today">—</div>
+        <div class="label">Booked Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" id="stat-week">—</div>
+        <div class="label">This Week</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" id="stat-upcoming">—</div>
+        <div class="label">Upcoming</div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <input type="search" id="search" placeholder="Search by name or phone…" oninput="filterTable()" />
+      <button class="btn btn-ghost" onclick="refresh()">↻ Refresh</button>
+      <button class="btn btn-primary" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      {% if appointments %}
+      <table id="appt-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Patient Name</th>
+            <th>Phone</th>
+            <th>Appointment Date</th>
+            <th>Booked At</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for appt in appointments %}
+          <tr data-name="{{ appt.patient_name | lower }}" data-phone="{{ appt.phone | lower }}">
+            <td style="color:var(--muted);font-size:.8rem">{{ loop.index }}</td>
+            <td><strong>{{ appt.patient_name or '—' }}</strong></td>
+            <td style="font-family:monospace">{{ appt.phone or '—' }}</td>
+            <td>{{ appt.appointment_date or '—' }}</td>
+            <td style="color:var(--muted);font-size:.8rem">{{ appt.created_at or '—' }}</td>
+            <td>
+              <span class="badge badge-success">Confirmed</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty">
+        <div class="icon">📅</div>
+        <p>No appointments booked yet.</p>
+        <p style="font-size:.85rem;margin-top:.5rem">Appointments will appear here once patients book through the chat.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    // ── Stats calculation ─────────────────────────────────────────────────
+    (function () {
+      const rows = Array.from(document.querySelectorAll('#appt-table tbody tr'));
+      const today = new Date().toDateString();
+      const weekAgo = Date.now() - 7 * 86400000;
+      let todayCount = 0, weekCount = 0, upcomingCount = 0;
+      const now = new Date();
+
+      rows.forEach(row => {
+        const bookedAt = row.cells[4]?.textContent?.trim();
+        const apptDate = row.cells[3]?.textContent?.trim();
+
+        if (bookedAt) {
+          const d = new Date(bookedAt);
+          if (d.toDateString() === today) todayCount++;
+          if (d.getTime() > weekAgo) weekCount++;
+        }
+        if (apptDate) {
+          const d = new Date(apptDate);
+          if (d > now) upcomingCount++;
+        }
+      });
+
+      document.getElementById('stat-today').textContent = todayCount;
+      document.getElementById('stat-week').textContent = weekCount;
+      document.getElementById('stat-upcoming').textContent = upcomingCount;
+    })();
+
+    // ── Search / filter ───────────────────────────────────────────────────
+    function filterTable() {
+      const q = document.getElementById('search').value.toLowerCase();
+      const rows = document.querySelectorAll('#appt-table tbody tr');
+      let visible = 0;
+      rows.forEach(row => {
+        const name = row.dataset.name || '';
+        const phone = row.dataset.phone || '';
+        const match = !q || name.includes(q) || phone.includes(q);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+      });
+    }
+
+    // ── Refresh ───────────────────────────────────────────────────────────
+    function refresh() {
+      location.reload();
+    }
+
+    // ── CSV Export ────────────────────────────────────────────────────────
+    function exportCSV() {
+      showToast('Downloading…');
+      window.open('/appointments/export', '_blank');
+    }
+
+    // ── Toast ─────────────────────────────────────────────────────────────
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2500);
+    }
+
+    // ── Auto-refresh every 30s ────────────────────────────────────────────
+    setInterval(async () => {
+      try {
+        const r = await fetch('/appointments?limit=1');
+        const d = await r.json();
+        const currentTotal = parseInt(document.getElementById('stat-total').textContent, 10);
+        if (d.total > currentTotal) {
+          showToast(`${d.total - currentTotal} new appointment(s)!`);
+          setTimeout(refresh, 2000);
+        }
+      } catch (_) {}
+    }, 30000);
+  </script>
+</body>
+</html>

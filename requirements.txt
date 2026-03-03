@@ -8,6 +8,7 @@ Pillow>=10.0.0,<12.0.0
 numpy>=1.23.0,<2.0.0
 mediapipe>=0.10.0,<1.0.0
 requests>=2.31.0,<3.0.0
+httpx>=0.27.0,<1.0.0
 python-dateutil>=2.8.2,<3.0.0
 rasa-sdk==3.6.2
 rasa==3.6.21

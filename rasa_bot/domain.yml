@@ -1,0 +1,497 @@
+# file: rasa_bot/domain.yml
+version: "3.1"
+
+intents:
+  # ── Core ───────────────────────────────────────────────────────────────
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - chitchat
+  - chitchat/thanks
+  - chitchat/who_are_you
+  - chitchat/where_located
+  - chitchat/joke
+  - out_of_scope
+
+  # ── Services & Clinic Info ─────────────────────────────────────────────
+  - ask_services
+  - ask_pricing
+  - ask_location
+  - ask_hours
+
+  # ── Appointment Booking ────────────────────────────────────────────────
+  - book_appointment
+  - provide_name
+  - provide_phone
+  - provide_date
+
+  # ── Procedures & Clinical ─────────────────────────────────────────────
+  - ask_about_procedure
+  - ask_preparation
+  - ask_recovery
+  - consult_procedure_details
+  - query_procedure_risks
+  - request_treatment_plan
+  - adjust_treatment_timing
+  - practice_procedure_steps
+  - manage_post_op_complications
+  - monitor_healing_progress
+
+  # ── Surgeons & Credentials ────────────────────────────────────────────
+  - verify_surgeon_credentials
+  - compare_surgeons
+  - request_accreditations
+  - query_success_rates
+  - query_surgical_experience
+  - request_live_demonstration
+
+  # ── Patient Profile ───────────────────────────────────────────────────
+  - disclose_medical_history
+  - discuss_aesthetic_goals
+  - request_patient_stories
+  - discuss_family_impact
+  - request_celebrity_matches
+
+  # ── Technology ────────────────────────────────────────────────────────
+  - query_technology
+  - request_technology_proof
+
+  # ── Financial ─────────────────────────────────────────────────────────
+  - discuss_financing
+  - express_cost_concerns
+
+  # ── Engagement & Conversion ───────────────────────────────────────────
+  - start_live_chat
+  - save_progress
+  - inquire_limited_availability
+  - inquire_maintenance_plans
+  - compare_implant_materials
+  - resolve_tool_issues
+
+  # ── Emotional States ──────────────────────────────────────────────────
+  - express_concern
+  - express_pain
+  - request_emergency
+  - express_anxiety
+  - express_uncertainty
+  - express_relief
+  - express_satisfaction
+  - high_anxiety_detected
+  - decision_confidence_high
+
+entities:
+  - patient_name
+  - phone
+  - appointment_date
+  - service_type
+  - urgency_level
+  - procedure
+  - surgeon
+  - condition
+  - risk
+  - tech
+  - location
+
+slots:
+  gaze_state:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  micro_expression:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  expression_confidence:
+    type: float
+    influence_conversation: true
+    mappings:
+      - type: custom
+    min_value: 0.0
+    max_value: 1.0
+  expression_intensity:
+    type: float
+    influence_conversation: true
+    mappings:
+      - type: custom
+    min_value: 0.0
+    max_value: 1.0
+  emotion_weight:
+    type: float
+    influence_conversation: true
+    mappings:
+      - type: custom
+    min_value: 0.0
+    max_value: 1.0
+  engagement_level:
+    type: float
+    influence_conversation: true
+    mappings:
+      - type: custom
+    min_value: 0.0
+    max_value: 1.0
+  emotion_tone_warmth:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  emotion_tone_pace:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  emotion_tone_support:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  query_emotion_context:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  current_query:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  current_intent:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: custom
+  last_query:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+  last_intent:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+  query_with_emotion:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+  patient_name:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: patient_name
+  phone:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: phone
+  appointment_date:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: appointment_date
+
+forms:
+  appointment_form:
+    required_slots:
+      - patient_name
+      - phone
+      - appointment_date
+
+responses:
+  # ── Greetings ─────────────────────────────────────────────────────────────
+  utter_greet:
+    - text: "Hi! I'm your dental assistant. I can explain treatments or book an appointment. How can I help today?"
+    - text: "Hello! Need info about whitening, cleaning, or to book a visit? I'm here to help."
+    - text: "Hey there! I'm here to help with dental questions or appointment booking."
+    - text: "Welcome! I can guide you through treatments, costs, and scheduling."
+    - text: "Good morning! Ready to help with your dental needs today."
+    - text: "Hello! I'm here to make your dental experience smooth and comfortable."
+
+  utter_greet_happy:
+    - text: "Wonderful to see you! I can sense you're in good spirits. How can I brighten your day with dental care?"
+    - text: "Hello! Your positive energy is contagious! Let's find the perfect dental solution for you."
+    - text: "Hi there! I love your enthusiasm. What dental service can I help you with today?"
+
+  utter_greet_anxious:
+    - text: "Hello. I understand dental visits can feel overwhelming. I'm here to help make this as comfortable as possible. What would you like to know?"
+    - text: "Hi there. I can sense some nervousness, and that's completely normal. Let's take this step by step—what can I help you with?"
+    - text: "Hello. I'm here to support you through this process. We'll go at your pace. What questions do you have?"
+
+  utter_greet_sad:
+    - text: "Hello. I'm here to help make this process as comfortable as possible. What can I assist you with today?"
+    - text: "Hi there. I understand this might be difficult. Let's work together to find the best solution for you."
+    - text: "Hello. I'm here to support you. What dental concern can I help address?"
+
+  # ── Goodbye ───────────────────────────────────────────────────────────────
+  utter_goodbye:
+    - text: "Take care! If you need anything else, I'm here."
+    - text: "Goodbye! Wishing you a healthy smile."
+    - text: "Bye! Come back anytime."
+    - text: "Take care! Feel free to reach out if you have more questions."
+    - text: "See you later! Stay healthy!"
+
+  # ── Services ──────────────────────────────────────────────────────────────
+  utter_ask_services:
+    - text: "We offer checkups, cleaning, whitening, fillings, braces consults, implants, and more. What are you interested in?"
+    - text: "Treatments include checkups, professional cleaning, whitening, fillings, crowns, implants, and braces consults."
+    - text: "Our services range from routine checkups to cosmetic procedures. What catches your interest?"
+    - text: "We provide comprehensive dental care including preventive, restorative, and cosmetic treatments. What would you like to know more about?"
+
+  utter_ask_services_anxious:
+    - text: "We offer a range of gentle treatments. I can explain each one in detail so you feel comfortable. What are you most curious about?"
+    - text: "Let me walk you through our services at a comfortable pace. We have checkups, cleanings, whitening, fillings, and more. Which would you like to learn about first?"
+    - text: "No worries at all—dental visits can feel overwhelming. We have many gentle options available. Let's take this step by step."
+
+  utter_ask_services_happy:
+    - text: "Great question! We offer checkups, cleaning, whitening, fillings, braces, implants, and more. What sounds interesting to you?"
+    - text: "Exciting! We have lots of options: checkups, cleanings, whitening, fillings, braces, implants. What would you like to explore?"
+    - text: "Wonderful! We're excited to help you achieve your dental goals. What interests you most?"
+
+  # ── Appointments ──────────────────────────────────────────────────────────
+  utter_ask_patient_name:
+    - text: "Great! May I have your full name?"
+    - text: "What's your full name for the booking?"
+    - text: "To get started, could you tell me your name?"
+
+  utter_ask_patient_name_anxious:
+    - text: "No pressure at all—just your name when you're ready. This helps us personalize your care."
+    - text: "Take your time. When you're comfortable, could you share your name?"
+
+  utter_ask_phone:
+    - text: "What's the best phone number to reach you?"
+    - text: "Please provide your phone number, e.g., +2010XXXXXXXX."
+    - text: "Could I get your contact number?"
+
+  utter_ask_appointment_date:
+    - text: "When would you like to come in? (e.g., 2025-09-25 10:00 or 'next Monday morning')"
+    - text: "Got it—what date/time works for you?"
+    - text: "What date and time would you prefer?"
+
+  utter_appointment_confirm:
+    - text: "All set, {patient_name}! I'll note {appointment_date} and we'll confirm via {phone}."
+    - text: "Thanks {patient_name}! I saved {appointment_date}. We'll reach you at {phone} to confirm."
+    - text: "Perfect! Your appointment for {appointment_date} is confirmed, {patient_name}. We'll contact you at {phone}."
+
+  utter_appointment_confirm_anxious:
+    - text: "All set, {patient_name}! Your appointment is scheduled for {appointment_date}. We'll send a gentle reminder to {phone}. You're in good hands."
+    - text: "Done, {patient_name}! I've noted {appointment_date}. We'll reach out at {phone} with helpful information before your visit. Everything will be okay."
+
+  utter_appointment_confirm_happy:
+    - text: "Excellent, {patient_name}! Your appointment for {appointment_date} is all set! We'll confirm via {phone}. Looking forward to seeing you!"
+    - text: "Perfect! I've booked {appointment_date} for you, {patient_name}. We'll reach you at {phone}. Can't wait to help you!"
+
+  # ── Fallback ──────────────────────────────────────────────────────────────
+  utter_fallback:
+    - text: "I didn't catch that. Could you rephrase?"
+    - text: "Sorry—could you say that differently?"
+    - text: "I'm not quite sure what you mean. Could you try rephrasing?"
+    - text: "Hmm, I didn't understand that. Can you say it another way?"
+
+  utter_fallback_anxious:
+    - text: "I want to make sure I understand you correctly. Could you try saying that in a different way?"
+    - text: "No worries—let's try again. Could you rephrase your question?"
+    - text: "I sense you might be feeling uncertain. That's okay! Could you help me understand by rephrasing?"
+
+  utter_fallback_sad:
+    - text: "I'm here to help, but I didn't quite catch that. Could you rephrase it for me?"
+
+  utter_fallback_happy:
+    - text: "I didn't quite catch that, but I'm excited to help! Could you rephrase your question?"
+
+  # ── Gaze & Anxiety Nudges ─────────────────────────────────────────────────
+  utter_gaze_nudge:
+    - text: "Noticed you're looking away—want a quick summary or a simpler explanation?"
+    - text: "Looks like you're distracted—shall I keep it short or clarify something?"
+    - text: "I see you might be looking elsewhere. Would you like me to simplify or summarize?"
+
+  utter_reassure_anxiety:
+    - text: "Feeling unsure is totally normal. Would a brief, friendly overview help before we continue?"
+    - text: "It's okay to feel nervous. I can explain the steps simply and clearly—want me to?"
+
+  utter_reassure_high_anxiety:
+    - text: "I can sense you're feeling quite anxious, and that's completely understandable. We have gentle techniques and our team is experienced with anxious patients. Would you like to hear about our comfort options?"
+    - text: "I understand this feels overwhelming. We offer sedation options, take things slowly, and our team is trained to make you feel comfortable. What would help ease your mind?"
+
+  utter_reassure_moderate_anxiety:
+    - text: "I can sense some nervousness, which is totally normal. We'll make sure you're comfortable throughout. What specific concerns do you have?"
+    - text: "It's okay to feel a bit anxious. We're here to help and will go at your pace."
+
+  # ── Service Explanations ──────────────────────────────────────────────────
+  utter_explain_checkup:
+    - text: "A routine dental checkup includes cleaning, plaque removal, and a quick oral health exam."
+
+  utter_explain_cleaning:
+    - text: "Professional cleaning removes plaque and tartar you can't reach at home."
+
+  utter_explain_whitening:
+    - text: "Teeth whitening brightens your smile using safe bleaching agents in-clinic or at-home kits."
+
+  utter_explain_fillings:
+    - text: "Fillings treat cavities by removing decay and sealing with tooth-colored material."
+
+  utter_explain_braces:
+    - text: "Orthodontic consults assess alignment; options include metal braces and clear aligners."
+
+  utter_explain_implants:
+    - text: "Dental implants are titanium posts placed into the jawbone to replace missing teeth. They look and function like natural teeth and can last a lifetime with proper care."
+
+  # ── Pricing, Location, Hours ───────────────────────────────────────────────
+  utter_ask_pricing:
+    - text: "Pricing varies by treatment. For specific costs, I can connect you with our team, or we can discuss during your consultation."
+
+  utter_ask_location:
+    - text: "We're located in Alexandria. Would you like the exact address and directions?"
+
+  utter_ask_hours:
+    - text: "Our hours are typically Monday–Friday 9 AM–6 PM and Saturday 9 AM–2 PM. Hours may vary, so I recommend calling to confirm."
+
+  # ── Emergency & Emotional ─────────────────────────────────────────────────
+  utter_request_emergency:
+    - text: "For dental emergencies, please call us immediately at +2010XXXXXXX. We'll help you get urgent care as soon as possible."
+
+  utter_express_concern:
+    - text: "I understand your concern. Let's address this together. Can you tell me more about what's worrying you?"
+    - text: "Your concerns matter. I'm here to help. What specific issue would you like to discuss?"
+
+  utter_express_pain:
+    - text: "I'm sorry you're experiencing pain. For immediate relief, please call us at +2010XXXXXXX. We can help you get care quickly."
+
+  utter_express_relief:
+    - text: "I'm so glad you're feeling relieved! That's wonderful to hear. Is there anything else I can help with?"
+
+  utter_express_satisfaction:
+    - text: "Thank you! I'm delighted I could help. Feel free to reach out anytime you need assistance."
+
+  # ── Procedure-specific ────────────────────────────────────────────────────
+  utter_consult_procedure_details:
+    - text: "Happy to explain that procedure! Could you tell me which specific treatment you'd like to learn about—implants, bone grafting, All-on-4, or something else?"
+
+  utter_query_procedure_risks:
+    - text: "Every procedure carries some level of risk, but our team takes extensive precautions. Common concerns include temporary swelling, sensitivity, and healing time. What specific procedure are you worried about?"
+    - text: "Your safety is our top priority. We'll discuss all risks and benefits during your consultation so you can make an informed decision."
+
+  utter_request_treatment_plan:
+    - text: "A full treatment plan is usually outlined during your first consultation. It covers timing, steps, recovery, and cost. Would you like to book a free consultation?"
+
+  utter_verify_surgeon_credentials:
+    - text: "All our surgeons are fully certified and have years of specialized experience. We're happy to share their credentials and case studies. Which doctor are you asking about?"
+
+  utter_compare_surgeons:
+    - text: "All our surgeons are highly qualified! The best choice depends on your specific needs. I can arrange a consultation to find the best match for you."
+
+  utter_request_accreditations:
+    - text: "Our clinic is accredited by recognized international dental standards bodies. We maintain strict quality and safety protocols."
+
+  utter_query_success_rates:
+    - text: "Our implant success rate exceeds 98%, with excellent long-term patient satisfaction. We can share detailed outcome data during your consultation."
+
+  utter_disclose_medical_history:
+    - text: "Thank you for sharing that. Medical history is very important for treatment planning. Our clinical team will review it carefully and adapt your treatment accordingly."
+
+  utter_discuss_aesthetic_goals:
+    - text: "We'd love to help you achieve your smile goals! Using digital smile design, we can show you a preview before any procedure begins. What's your main aesthetic concern?"
+
+  utter_query_technology:
+    - text: "We use state-of-the-art technology including CBCT scanning, 3D digital impressions, CAD/CAM systems, and guided surgery software. Would you like to learn more?"
+
+  utter_discuss_financing:
+    - text: "We offer flexible payment plans including installments and insurance coordination. A financial advisor can walk you through the best options for your budget."
+
+  utter_express_cost_concerns:
+    - text: "I completely understand cost concerns. We offer transparent pricing and flexible payment options. There are no hidden fees, and we can provide a detailed quote during consultation."
+
+  utter_request_patient_stories:
+    - text: "We have many patient success stories! Would you like to see before/after photos or hear specific testimonials?"
+
+  utter_query_surgical_experience:
+    - text: "Our surgical team has performed thousands of procedures, including complex cases like zygomatic implants. We're happy to share case studies."
+
+  utter_start_live_chat:
+    - text: "Of course! Let me connect you with one of our patient coordinators. Please provide your name and phone number."
+
+  utter_inquire_limited_availability:
+    - text: "Appointment slots fill up quickly! I'd recommend booking early to secure your preferred time. Would you like to check available dates?"
+
+  utter_inquire_maintenance_plans:
+    - text: "We offer comprehensive maintenance plans including annual checkups, hygiene visits, and long-term monitoring. Ask about our loyalty packages during your visit!"
+
+  utter_compare_implant_materials:
+    - text: "Both titanium and zirconia implants have excellent success rates. The best choice depends on your specific case—let's discuss during a consultation."
+
+  utter_high_anxiety_detected:
+    - text: "I can sense you might be feeling nervous. That's completely understandable! Dental anxiety is very common, and we're fully equipped to make your experience as comfortable as possible."
+
+  utter_decision_confidence_high:
+    - text: "It sounds like you have a clear idea of what you want—that's great! I'd love to help you take the next step. Shall we book a consultation?"
+
+  utter_discuss_family_impact:
+    - text: "Dental health has a huge impact on family life! We offer family packages and can coordinate treatment plans for multiple family members."
+
+  utter_request_celebrity_matches:
+    - text: "Many public figures have transformed their smiles with dental procedures similar to what we offer. We can show you before/after cases during a consultation."
+
+  utter_manage_post_op_complications:
+    - text: "If you're experiencing complications after a procedure, please contact us immediately. For urgent concerns, call our emergency line at +2010XXXXXXX."
+
+  utter_monitor_healing_progress:
+    - text: "Healing typically follows a predictable timeline. We schedule follow-up appointments to monitor your progress and ensure everything is healing properly."
+
+  utter_request_live_demonstration:
+    - text: "We can arrange a virtual tour or demonstration of our technology. Would you like me to schedule that for you?"
+
+  utter_adjust_treatment_timing:
+    - text: "We can often adjust treatment timing based on your schedule. Let's discuss your needs during a consultation to create the most convenient plan."
+
+  utter_practice_procedure_steps:
+    - text: "We offer comprehensive pre-procedure preparation including detailed explanations and practice walkthroughs to help reduce anxiety."
+
+  utter_request_technology_proof:
+    - text: "We can provide certifications, equipment specs, and independent validation reports. Would you like our technical team to prepare a detailed document for you?"
+
+  utter_save_progress:
+    - text: "I can save your conversation summary and send it to your email. Would you like me to do that?"
+
+  utter_resolve_tool_issues:
+    - text: "I'm sorry you're having technical difficulties! Please try refreshing the page or using a different browser. If the issue persists, contact our technical support."
+
+  # ── Small Talk ────────────────────────────────────────────────────────────
+  utter_small_talk_name:
+    - text: "I'm your dental assistant chatbot—happy to help with treatments and bookings!"
+
+  utter_small_talk_location:
+    - text: "We're in Alexandria. If you need directions, I can help."
+
+  utter_chitchat:
+    - text: "Why did the dentist become a baseball coach? Because he knew all about crowns! 😄 Now, how can I help with your dental needs?"
+
+  # ── Arabic ────────────────────────────────────────────────────────────────
+  utter_greet_ar:
+    - text: "أهلاً! أقدر أساعدك في حجز موعد أو شرح أي علاج أسنان. تحب نبدأ بإيه؟"
+    - text: "مرحباً! لو محتاج تنظيف، تبييض، أو استشارة تقويم—أنا معك."
+
+  utter_fallback_ar:
+    - text: "معذرةً، ممكن تعيد صياغة سؤالك؟"
+
+actions:
+  - action_set_context_from_bridge
+  - action_contextual_nudge
+  - action_emotion_aware_response
+  - action_emotion_weighted_query
+  - action_submit_appointment
+  - action_default_fallback
+  - action_debug_slots
+  - action_explain_service
+  - action_rate_limited_nudge
+  - action_turn_hook
+  - action_reset_conversation
+  - validate_appointment_form
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

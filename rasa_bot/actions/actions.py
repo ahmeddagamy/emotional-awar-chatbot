@@ -351,16 +351,34 @@ class ActionSetContextFromBridge(Action):
     def run(
         self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: DomainDict
     ) -> List[EventType]:
-        # Get signals for this specific conversation's sender ID
         sender_id = tracker.sender_id or "unknown"
-        sig = VISION_CACHE.get(sender_id)
-
         events: List[EventType] = []
+
+        # Try reading emotion from message metadata first (set by /chat proxy)
+        metadata_emotion = (tracker.latest_message or {}).get("metadata", {}).get("emotion")
+        if metadata_emotion and isinstance(metadata_emotion, dict):
+            expr = metadata_emotion.get("expression", "neutral")
+            conf = float(metadata_emotion.get("confidence", 0.5))
+            intensity = float(metadata_emotion.get("intensity", 0.0))
+            engagement = float(metadata_emotion.get("engagement", 0.5))
+            weight = float(metadata_emotion.get("weight", 0.0))
+            events.append(SlotSet("micro_expression", normalize_spaces(expr)))
+            events.append(SlotSet("expression_confidence", conf))
+            events.append(SlotSet("expression_intensity", intensity))
+            events.append(SlotSet("emotion_weight", weight))
+            events.append(SlotSet("engagement_level", engagement))
+            logger.info(
+                f"[bridge] Slots from metadata sender={sender_id} expr={expr!r} "
+                f"intensity={intensity:.2f} engagement={engagement:.2f}"
+            )
+            return events
+
+        # Fallback: poll vision server via cache
+        sig = VISION_CACHE.get(sender_id)
         if sig.gaze_state:
             events.append(SlotSet("gaze_state", normalize_spaces(sig.gaze_state)))
         if sig.micro_expression:
             events.append(SlotSet("micro_expression", normalize_spaces(sig.micro_expression)))
-        # Store emotion weights for emotionally-aware responses
         events.append(SlotSet("expression_confidence", sig.expression_confidence))
         events.append(SlotSet("expression_intensity", sig.expression_intensity))
         events.append(SlotSet("emotion_weight", sig.emotion_weight))

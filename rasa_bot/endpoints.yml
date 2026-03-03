@@ -1,0 +1,4 @@
+# rasa_bot/endpoints.yml
+# Custom actions server endpoint
+action_endpoint:
+  url: "http://localhost:5055/webhook"
