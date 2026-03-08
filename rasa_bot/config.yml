@@ -8,9 +8,17 @@ language: en
 
 pipeline:
   # ── Tokenisation ──────────────────────────────────────────────────────────
-  - name: WhitespaceTokenizer
+  # SpacyTokenizer handles medical/dental compound words better than
+  # WhitespaceTokenizer (e.g., "root canal", "dental implant")
+  - name: SpacyNLP
+    model: en_core_web_md
+  - name: SpacyTokenizer
+    intent_tokenization_flag: false
+    intent_split_symbol: "/"
 
   # ── Feature extraction ────────────────────────────────────────────────────
+  - name: SpacyFeaturizer
+    pooling: mean
   - name: RegexFeaturizer
   - name: LexicalSyntacticFeaturizer
   - name: CountVectorsFeaturizer
@@ -21,25 +29,24 @@ pipeline:
 
   # ── Intent / Entity classifier ────────────────────────────────────────────
   - name: DIETClassifier
-    epochs: 150
+    epochs: 200
     constrain_similarities: true
     entity_recognition: true
     number_of_transformer_layers: 2
-    transformer_size: 128
-    drop_rate: 0.2
+    transformer_size: 256
+    drop_rate: 0.25
     batch_size:
       - 64
       - 256
     embedding_dimension: 20
     evaluate_every_number_of_epochs: 20
-    intent_tokenization_flag: false
-    intent_split_symbol: "/"
+    use_masked_language_model: true
 
   - name: EntitySynonymMapper
 
   # ── Fallback detection ────────────────────────────────────────────────────
   - name: FallbackClassifier
-    threshold: 0.3
+    threshold: 0.35
     ambiguity_threshold: 0.1
 
 policies:

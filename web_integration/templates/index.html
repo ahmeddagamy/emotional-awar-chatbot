@@ -81,6 +81,16 @@
     .emotion-badge.active { display: inline-flex; align-items: center; gap: 4px; }
     .emotion-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
 
+    /* Spike flash animation */
+    .spike-flash {
+      animation: spikeFlash 0.4s ease-out;
+      border-color: rgba(255,100,100,.6);
+    }
+    @keyframes spikeFlash {
+      0% { transform: scale(1.3); background: rgba(255,50,50,.4); }
+      100% { transform: scale(1); background: rgba(0,0,0,.65); }
+    }
+
     /* Engagement bar */
     .engage-bar {
       position: absolute; top: 8px; right: 8px;
@@ -88,6 +98,43 @@
       background: rgba(0,0,0,.6); padding: 3px 8px; border-radius: 999px; font-size: 11px; color: #fff;
     }
     .engage-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* Momentum badge */
+    .momentum-bar {
+      position: absolute; top: 8px; left: 8px;
+      display: none; align-items: center; gap: 4px; pointer-events: none;
+      background: rgba(0,0,0,.6); padding: 3px 8px; border-radius: 999px; font-size: 11px; color: #fff;
+    }
+    .momentum-bar.active { display: inline-flex; }
+
+    /* ── Analytics panel ───────────────────────── */
+    .analytics-panel {
+      display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid #1a2336;
+      flex-wrap: wrap;
+    }
+    .metric {
+      flex: 1; min-width: 80px; background: rgba(255,255,255,.03);
+      border-radius: 8px; padding: 5px 8px; font-size: 11px;
+    }
+    .metric-label { color: var(--ink-dim); font-size: 10px; }
+    .metric-bar {
+      height: 4px; border-radius: 2px; background: var(--muted);
+      margin-top: 3px; overflow: hidden;
+    }
+    .metric-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; }
+    .metric-value { font-weight: 600; font-size: 11px; }
+
+    /* Trajectory sparkline */
+    .trajectory-wrap {
+      padding: 4px 12px 8px; border-top: 1px solid #1a2336;
+    }
+    .trajectory-wrap canvas {
+      width: 100%; height: 32px; display: block;
+    }
+    .trajectory-legend {
+      display: flex; gap: 12px; font-size: 10px; color: var(--ink-dim); margin-top: 2px;
+    }
+    .legend-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 3px; }
 
     /* ── Chat section ──────────────────────────── */
     .chat-section {
@@ -182,6 +229,12 @@
             <span class="emotion-dot" id="emo-dot"></span>
             <span id="emo-label">neutral</span>
           </span>
+          <span class="emotion-badge" id="emo-compound">
+            <span id="compound-label">--</span>
+          </span>
+          <span class="emotion-badge" id="emo-spike">
+            <span id="spike-label">--</span>
+          </span>
           <span class="emotion-badge" id="emo-gaze">
             Gaze: <strong id="gaze-val">--</strong>
           </span>
@@ -192,6 +245,37 @@
         <div class="engage-bar">
           <span class="engage-dot" id="engage-dot"></span>
           <span id="engage-pct">50%</span>
+        </div>
+        <div class="momentum-bar" id="momentum-badge">
+          Trend: <span id="momentum-label">stable</span>
+        </div>
+      </div>
+
+      <!-- Analytics metrics -->
+      <div class="analytics-panel">
+        <div class="metric">
+          <div class="metric-label">Valence</div>
+          <div class="metric-value" id="valence-val">0.00</div>
+          <div class="metric-bar">
+            <div class="metric-fill" id="valence-bar" style="width:50%;background:#ffb347"></div>
+          </div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Arousal</div>
+          <div class="metric-value" id="arousal-val">0.00</div>
+          <div class="metric-bar">
+            <div class="metric-fill" id="arousal-bar" style="width:10%;background:#6b8dd6"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trajectory sparkline -->
+      <div class="trajectory-wrap">
+        <canvas id="trajectory-canvas"></canvas>
+        <div class="trajectory-legend">
+          <span><span class="legend-dot" style="background:#21c185"></span>Valence</span>
+          <span><span class="legend-dot" style="background:#ffb347"></span>Arousal</span>
+          <span><span class="legend-dot" style="background:rgba(107,176,221,0.5)"></span>Engagement</span>
         </div>
       </div>
     </section>

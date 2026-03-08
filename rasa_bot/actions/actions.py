@@ -362,14 +362,34 @@ class ActionSetContextFromBridge(Action):
             intensity = float(metadata_emotion.get("intensity", 0.0))
             engagement = float(metadata_emotion.get("engagement", 0.5))
             weight = float(metadata_emotion.get("weight", 0.0))
+            compound = metadata_emotion.get("compound_emotion")
+            compound_conf = float(metadata_emotion.get("compound_confidence", 0.0))
+            valence = float(metadata_emotion.get("valence", 0.0))
+            arousal = float(metadata_emotion.get("arousal", 0.0))
+            spike = metadata_emotion.get("micro_expression_spike")
+            spike_int = float(metadata_emotion.get("spike_intensity", 0.0))
+            momentum = metadata_emotion.get("momentum", {})
+
             events.append(SlotSet("micro_expression", normalize_spaces(expr)))
             events.append(SlotSet("expression_confidence", conf))
             events.append(SlotSet("expression_intensity", intensity))
             events.append(SlotSet("emotion_weight", weight))
             events.append(SlotSet("engagement_level", engagement))
+            events.append(SlotSet("compound_emotion", compound))
+            events.append(SlotSet("compound_confidence", compound_conf))
+            events.append(SlotSet("valence", valence))
+            events.append(SlotSet("arousal", arousal))
+            if spike:
+                events.append(SlotSet("micro_expression_spike", spike))
+                events.append(SlotSet("spike_intensity", spike_int))
+            if momentum:
+                events.append(SlotSet("sentiment_direction", momentum.get("direction", "stable")))
+                events.append(SlotSet("anxiety_trend", momentum.get("anxiety_trend", "stable")))
+
             logger.info(
                 f"[bridge] Slots from metadata sender={sender_id} expr={expr!r} "
-                f"intensity={intensity:.2f} engagement={engagement:.2f}"
+                f"compound={compound} intensity={intensity:.2f} engagement={engagement:.2f} "
+                f"valence={valence:.2f} arousal={arousal:.2f}"
             )
             return events
 
@@ -426,42 +446,83 @@ class ActionContextualNudge(Action):
         intensity = float(tracker.get_slot("expression_intensity") or 0.0)
         engagement = float(tracker.get_slot("engagement_level") or 0.5)
         confidence = float(tracker.get_slot("expression_confidence") or 0.5)
-        
+        compound = safe_str(tracker.get_slot("compound_emotion") or "")
+        valence = float(tracker.get_slot("valence") or 0.0)
+        arousal = float(tracker.get_slot("arousal") or 0.0)
+        anxiety_trend = safe_str(tracker.get_slot("anxiety_trend") or "stable")
+        spike = safe_str(tracker.get_slot("micro_expression_spike") or "")
+
         emitted = False
-        
+
         # Only act if confidence is reasonable
-        if confidence < 0.4:
+        if confidence < 0.35:
             logger.debug(f"[nudge] Low confidence ({confidence:.2f}), skipping")
             return []
 
         # Gaze-based nudges (weighted by engagement)
         if gaze and _is_distracted(gaze):
-            if engagement < 0.4:
+            if engagement < 0.35:
                 dispatcher.utter_message(text="I notice you might be looking away. I'm here to help whenever you're ready!")
             else:
                 dispatcher.utter_message(response="utter_gaze_nudge")
             emitted = True
 
-        # Emotion-aware responses based on intensity
-        if expr and intensity > 0.3:  # Only respond to significant emotions
+        # Compound emotion responses (higher priority than base emotions)
+        if compound and intensity > 0.25:
+            compound_lower = compound.lower().strip()
+            if compound_lower == "anxious" and intensity > 0.35:
+                if anxiety_trend == "increasing":
+                    dispatcher.utter_message(response="utter_reassure_high_anxiety")
+                else:
+                    dispatcher.utter_message(response="utter_reassure_moderate_anxiety")
+                emitted = True
+            elif compound_lower == "frustrated" and intensity > 0.35:
+                dispatcher.utter_message(
+                    text="I sense some frustration building. I want to help make this easier. "
+                         "Would you like me to simplify things or address a specific concern?"
+                )
+                emitted = True
+            elif compound_lower == "bittersweet":
+                dispatcher.utter_message(
+                    text="I can see this is bringing up mixed feelings. That's completely natural. "
+                         "I'm here to support you through this."
+                )
+                emitted = True
+
+        # Micro-expression spike response (brief involuntary emotion flash)
+        if not emitted and spike and spike in ANXIOUS_TOKENS:
+            dispatcher.utter_message(
+                text="I want to make sure you're feeling comfortable. Is there anything "
+                     "specific I can help address?"
+            )
+            emitted = True
+
+        # Base emotion responses (if compound didn't fire)
+        if not emitted and expr and intensity > 0.3:
             expr_lower = expr.lower().strip()
-            
-            if expr_lower == "sad" and intensity > 0.5:
+
+            if expr_lower == "sad" and intensity > 0.4:
                 dispatcher.utter_message(
                     text="I can sense you might be feeling down. I'm here to help make this process as comfortable as possible. "
                          "Would you like to talk about what's concerning you?"
                 )
                 emitted = True
-            elif expr_lower == "fear" and intensity > 0.4:
+            elif expr_lower == "fear" and intensity > 0.35:
                 dispatcher.utter_message(
                     text="I understand that dental visits can be anxiety-inducing. Let me reassure you - we'll go at your pace, "
                          "and I'm here to answer any questions or concerns you might have."
                 )
                 emitted = True
-            elif expr_lower == "anger" and intensity > 0.4:
+            elif expr_lower in ("angry", "anger") and intensity > 0.35:
                 dispatcher.utter_message(
                     text="I sense some frustration. I'm here to help resolve any issues. Please let me know what's bothering you, "
                          "and we'll work through it together."
+                )
+                emitted = True
+            elif expr_lower == "contempt" and intensity > 0.4:
+                dispatcher.utter_message(
+                    text="I want to make sure I'm giving you the information you need. "
+                         "Would you like me to be more specific about anything?"
                 )
                 emitted = True
             elif expr_lower == "happy" and intensity > 0.5:
@@ -470,17 +531,28 @@ class ActionContextualNudge(Action):
                 )
                 emitted = True
             elif _is_anxious(expr):
-                # Generic anxiety response (for surprise, disgust, etc.)
                 dispatcher.utter_message(response="utter_reassure_anxiety")
                 emitted = True
 
+        # Valence/arousal based nudge (catch-all for strong negative states)
+        if not emitted and valence < -0.4 and arousal > 0.5:
+            dispatcher.utter_message(
+                text="I can tell this might be stressful. I'm here to help, "
+                     "and we can take things at whatever pace feels right."
+            )
+            emitted = True
+
         if emitted:
             logger.info(
-                f"[nudge] gaze={gaze!r} expr={expr!r} intensity={intensity:.2f} "
+                f"[nudge] gaze={gaze!r} expr={expr!r} compound={compound!r} "
+                f"intensity={intensity:.2f} valence={valence:.2f} arousal={arousal:.2f} "
                 f"engagement={engagement:.2f} -> emotion-aware message sent"
             )
         else:
-            logger.debug(f"[nudge] No nudge emitted (gaze={gaze!r}, expr={expr!r}, intensity={intensity:.2f})")
+            logger.debug(
+                f"[nudge] No nudge emitted (gaze={gaze!r}, expr={expr!r}, "
+                f"compound={compound!r}, intensity={intensity:.2f})"
+            )
 
         return []
 

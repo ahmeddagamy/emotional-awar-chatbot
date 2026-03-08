@@ -13,6 +13,7 @@ intents:
   - chitchat/where_located
   - chitchat/joke
   - out_of_scope
+  - nlu_fallback
 
   # ── Services & Clinic Info ─────────────────────────────────────────────
   - ask_services
@@ -94,89 +95,96 @@ entities:
   - location
 
 slots:
+  # Emotion slots - stored for metadata but don't influence Rasa dialog
+  # (emotion-aware response selection is handled by the vision server)
   gaze_state:
     type: text
-    influence_conversation: true
+    influence_conversation: false
     mappings:
       - type: custom
   micro_expression:
     type: text
-    influence_conversation: true
+    influence_conversation: false
     mappings:
       - type: custom
   expression_confidence:
     type: float
-    influence_conversation: true
+    influence_conversation: false
     mappings:
       - type: custom
     min_value: 0.0
     max_value: 1.0
   expression_intensity:
     type: float
-    influence_conversation: true
+    influence_conversation: false
     mappings:
       - type: custom
     min_value: 0.0
     max_value: 1.0
   emotion_weight:
     type: float
-    influence_conversation: true
+    influence_conversation: false
     mappings:
       - type: custom
     min_value: 0.0
     max_value: 1.0
   engagement_level:
     type: float
-    influence_conversation: true
+    influence_conversation: false
     mappings:
       - type: custom
     min_value: 0.0
     max_value: 1.0
-  emotion_tone_warmth:
-    type: text
-    influence_conversation: true
-    mappings:
-      - type: custom
-  emotion_tone_pace:
-    type: text
-    influence_conversation: true
-    mappings:
-      - type: custom
-  emotion_tone_support:
-    type: text
-    influence_conversation: true
-    mappings:
-      - type: custom
-  query_emotion_context:
-    type: text
-    influence_conversation: true
-    mappings:
-      - type: custom
-  current_query:
-    type: text
-    influence_conversation: true
-    mappings:
-      - type: custom
-  current_intent:
-    type: text
-    influence_conversation: true
-    mappings:
-      - type: custom
-  last_query:
+  compound_emotion:
     type: text
     influence_conversation: false
     mappings:
       - type: custom
-  last_intent:
+  compound_confidence:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: custom
+    min_value: 0.0
+    max_value: 1.0
+  valence:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: custom
+    min_value: -1.0
+    max_value: 1.0
+  arousal:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: custom
+    min_value: 0.0
+    max_value: 1.0
+  micro_expression_spike:
     type: text
     influence_conversation: false
     mappings:
       - type: custom
-  query_with_emotion:
+  spike_intensity:
+    type: float
+    influence_conversation: false
+    mappings:
+      - type: custom
+    min_value: 0.0
+    max_value: 1.0
+  sentiment_direction:
     type: text
     influence_conversation: false
     mappings:
       - type: custom
+  anxiety_trend:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+  # Appointment slots - these DO influence conversation (form management)
   patient_name:
     type: text
     influence_conversation: true
@@ -227,6 +235,19 @@ responses:
     - text: "Hello. I'm here to help make this process as comfortable as possible. What can I assist you with today?"
     - text: "Hi there. I understand this might be difficult. Let's work together to find the best solution for you."
     - text: "Hello. I'm here to support you. What dental concern can I help address?"
+
+  # ── Affirm / Deny / Thanks ───────────────────────────────────────────────
+  utter_affirm:
+    - text: "Great! Let's move forward. What would you like to do next?"
+    - text: "Perfect! How can I help you further?"
+
+  utter_deny:
+    - text: "No problem at all. Is there anything else I can help you with?"
+    - text: "That's okay! Let me know if you need anything else."
+
+  utter_thanks:
+    - text: "You're welcome! Happy to help with your dental care."
+    - text: "My pleasure! Don't hesitate to reach out if you need anything else."
 
   # ── Goodbye ───────────────────────────────────────────────────────────────
   utter_goodbye:
@@ -372,7 +393,7 @@ responses:
   utter_consult_procedure_details:
     - text: "Happy to explain that procedure! Could you tell me which specific treatment you'd like to learn about—implants, bone grafting, All-on-4, or something else?"
 
-  utter_query_procedure_risks:
+  utter_procedure_risks:
     - text: "Every procedure carries some level of risk, but our team takes extensive precautions. Common concerns include temporary swelling, sensitivity, and healing time. What specific procedure are you worried about?"
     - text: "Your safety is our top priority. We'll discuss all risks and benefits during your consultation so you can make an informed decision."
 
@@ -479,16 +500,9 @@ responses:
     - text: "معذرةً، ممكن تعيد صياغة سؤالك؟"
 
 actions:
-  - action_set_context_from_bridge
-  - action_contextual_nudge
-  - action_emotion_aware_response
-  - action_emotion_weighted_query
   - action_submit_appointment
   - action_default_fallback
-  - action_debug_slots
   - action_explain_service
-  - action_rate_limited_nudge
-  - action_turn_hook
   - action_reset_conversation
   - validate_appointment_form
 
